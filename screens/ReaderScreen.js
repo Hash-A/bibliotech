@@ -1,25 +1,37 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
+import { Title, Paragraph } from 'react-native-paper';
 
-export default function ReaderScreen() {
+export default function ReaderScreen({ route }) {
+  const { book } = route.params || {};
+  const title = book?.title || 'No Title';
+  const content = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+  Sed sed nunc nec velit finibus finibus. Proin porta urna a malesuada malesuada. 
+  Suspendisse potenti. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+  
+  (More book content would appear here.)`;
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Reader</Text>
-      <Text>Your reading interface will appear here.</Text>
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Title style={styles.title}>{title}</Title>
+      <Paragraph style={styles.content}>{content}</Paragraph>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    padding: 16,
+    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
+    marginBottom: 16,
+    textAlign: 'center',
     fontWeight: 'bold',
-    marginBottom: 20,
+  },
+  content: {
+    fontSize: 16,
+    lineHeight: 24,
   },
 });
