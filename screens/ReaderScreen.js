@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { Title, Paragraph } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 
 export default function ReaderScreen({ route }) {
   const { book } = route.params || {};
@@ -13,8 +13,8 @@ export default function ReaderScreen({ route }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Title style={styles.title}>{title}</Title>
-      <Paragraph style={styles.content}>{content}</Paragraph>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.content}>{content}</Text>
     </ScrollView>
   );
 }

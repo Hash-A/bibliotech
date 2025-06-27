@@ -1,38 +1,44 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Text, Card, Title, Button, Avatar, Divider } from 'react-native-paper';
+import { Text, Card, Button, Avatar, Divider } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
 
 const sampleCover = 'https://picsum.photos/200/300'; // Replace with real image URL or asset
 
 export default function DashboardScreen() {
+  const navigation = useNavigation();
+
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
-      <Title style={styles.header}>📚 Bibliotech</Title>
+      <Text style={styles.header}>📚 Bibliotech</Text>
 
       {/* Featured Book Card */}
       <Text style={styles.sectionTitle}>🔥 Our Picks</Text>
       <Card style={styles.featuredCard}>
         <Card.Cover source={{ uri: sampleCover }} />
         <Card.Content>
-          <Title>Sample Book Title</Title>
+          <Text>Sample Book Title</Text>
           <Text>By Author Name</Text>
         </Card.Content>
         <Card.Actions>
-          <Button onPress={() => {}}>Read</Button>
-          <Button onPress={() => {}}>Listen</Button>
+          <Button onPress={() => navigation.navigate('BookPreview', { book: { title: 'Sample Book Title', author: 'Author Name' } })}>View</Button>
+          <Button onPress={() => {}}>Add to Library</Button>
         </Card.Actions>
       </Card>
 
       {/* Recently Opened Books */}
-      <Text style={styles.sectionTitle}>📖 Recently Opened</Text>
+      <Text style={styles.sectionTitle}>📖 Continue Reading </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recentList}>
         {[1, 2, 3].map((num) => (
           <Card key={num} style={styles.miniCard}>
             <Card.Cover source={{ uri: sampleCover }} style={styles.miniCover} />
             <Card.Content>
-              <Title style={styles.miniTitle}>Book {num}</Title>
+              <Text style={styles.miniTitle}>Book {num}</Text>
             </Card.Content>
+            <Card.Actions>
+              <Button onPress={() => navigation.navigate('BookPreview', { book: { title: `Book ${num}`, author: 'Author Name' } })}>View</Button>
+            </Card.Actions>
           </Card>
         ))}
       </ScrollView>

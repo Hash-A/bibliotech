@@ -8,6 +8,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import SearchScreen from '../screens/SearchScreen';
 import MyLibraryScreen from '../screens/MyLibraryScreen';
 import ReaderScreen from '../screens/ReaderScreen';
+import BookPreviewScreen from '../screens/BookPreviewScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -40,6 +41,7 @@ export default function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Library" component={MainTabs} options={{ headerShown: false }} />
+        <Stack.Screen name="BookPreview" component={BookPreviewScreen} options={{ title: 'Book Preview' }} />
         <Stack.Screen name="Reader" component={ReaderScreen} options={{ title: 'Reader' }} />
       </Stack.Navigator>
     </NavigationContainer>

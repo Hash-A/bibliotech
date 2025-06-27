@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Card, Title, Paragraph, IconButton, Text } from 'react-native-paper';
+import { Card, IconButton, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
 const books = [
@@ -31,7 +31,7 @@ export default function MyLibraryScreen() {
     const navigation = useNavigation();
     return (
     <ScrollView style={styles.container}>
-      <Title style={styles.header}>📖 My Library</Title>
+      <Text style={styles.header}>📖 My Library</Text>
         {books.map((book) => (
         <Card
             key={book.id}
@@ -39,12 +39,12 @@ export default function MyLibraryScreen() {
             onPress={() => navigation.navigate('Reader', { book })}
         >
             <Card.Content>
-            <Title>{book.title}</Title>
-            <Paragraph>{book.author}</Paragraph>
-            <Paragraph style={styles.status}>
+            <Text style={styles.title}>{book.title}</Text>
+            <Text>{book.author}</Text>
+            <Text style={styles.status}>
                 {book.downloaded ? '✅ Downloaded' : '❌ Not Downloaded'}{"   "}
                 {book.hasAudio ? '🎧 Audiobook' : '🚫 No Audiobook'}
-            </Paragraph>
+            </Text>
             </Card.Content>
         </Card>
         ))}
@@ -70,5 +70,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#555',
     fontSize: 14,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });

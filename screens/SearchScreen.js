@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { Searchbar, Card, Title, Paragraph, Button, Text } from 'react-native-paper';
+import { Searchbar, Card, Button, Text } from 'react-native-paper';
 
 const popularBooks = [
   { title: '1984', author: 'George Orwell' },
@@ -45,27 +45,29 @@ export default function SearchScreen() {
       />
 
       {query.trim() === '' ? (
-        <View style={styles.popularSection}>
+        <ScrollView style={styles.popularSection}>
           <Text style={styles.popularTitle}>📚 Browse Popular Books</Text>
           {popularBooks.map((book, idx) => (
-            <Button
+            <Card
               key={idx}
-              mode="outlined"
-              style={styles.popularButton}
+              style={styles.popularCard}
               onPress={() => handlePopularPress(book.title)}
             >
-              {book.title}
-            </Button>
+              <Card.Content>
+                <Text style={styles.title}>{book.title}</Text>
+                <Text>{book.author}</Text>
+              </Card.Content>
+            </Card>
           ))}
-        </View>
+        </ScrollView>
       ) : (
         <ScrollView style={styles.results}>
           {results.length > 0 ? (
             results.map((book, idx) => (
               <Card key={idx} style={styles.resultCard}>
                 <Card.Content>
-                  <Title>{book.title}</Title>
-                  <Paragraph>{book.author}</Paragraph>
+                  <Text style={styles.title}>{book.title}</Text>
+                  <Text>{book.author}</Text>
                 </Card.Content>
               </Card>
             ))
@@ -96,8 +98,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontWeight: '600',
   },
-  popularButton: {
-    marginVertical: 5,
+  popularCard: {
+    marginBottom: 15,
   },
   results: {
     marginTop: 10,
@@ -109,5 +111,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
     color: '#999',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
