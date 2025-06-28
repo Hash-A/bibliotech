@@ -2,30 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Card, IconButton, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-
-const books = [
-  {
-    id: 1,
-    title: 'The Republic',
-    author: 'Plato',
-    downloaded: true,
-    hasAudio: true,
-  },
-  {
-    id: 2,
-    title: 'Pride and Prejudice',
-    author: 'Jane Austen',
-    downloaded: false,
-    hasAudio: false,
-  },
-  {
-    id: 3,
-    title: 'Frankenstein',
-    author: 'Mary Shelley',
-    downloaded: true,
-    hasAudio: false,
-  },
-];
+import { books } from '../data/books';
 
 export default function MyLibraryScreen() {
     const navigation = useNavigation();

@@ -1,31 +1,21 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, Image } from 'react-native';
 import { Searchbar, Card, Button, Text } from 'react-native-paper';
-
-const popularBooks = [
-  { title: '1984', author: 'George Orwell' },
-  { title: 'Moby Dick', author: 'Herman Melville' },
-  { title: 'Don Quixote', author: 'Miguel de Cervantes' },
-];
-
-const dummyResults = [
-  { title: 'Frankenstein', author: 'Mary Shelley' },
-  { title: 'The Odyssey', author: 'Homer' },
-];
+import { useNavigation } from '@react-navigation/native';
+import { popularBooks, searchBooks } from '../data/books';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const navigation = useNavigation();
 
   const onChangeSearch = (text) => {
     setQuery(text);
     if (text.trim() === '') {
       setResults([]);
     } else {
-      // simulate search
-      const filtered = dummyResults.filter((book) =>
-        book.title.toLowerCase().includes(text.toLowerCase())
-      );
+      // Use the search function from books data
+      const filtered = searchBooks(text);
       setResults(filtered);
     }
   };
@@ -33,6 +23,10 @@ export default function SearchScreen() {
   const handlePopularPress = (title) => {
     setQuery(title);
     onChangeSearch(title);
+  };
+
+  const handleBookPress = (book) => {
+    navigation.navigate('BookPreview', { book });
   };
 
   return (
@@ -47,15 +41,20 @@ export default function SearchScreen() {
       {query.trim() === '' ? (
         <ScrollView style={styles.popularSection}>
           <Text style={styles.popularTitle}>📚 Browse Popular Books</Text>
-          {popularBooks.map((book, idx) => (
+          {popularBooks.map((book) => (
             <Card
-              key={idx}
+              key={book.id}
               style={styles.popularCard}
-              onPress={() => handlePopularPress(book.title)}
+              onPress={() => handleBookPress(book)}
             >
               <Card.Content>
-                <Text style={styles.title}>{book.title}</Text>
-                <Text>{book.author}</Text>
+                <View style={styles.bookContent}>
+                  <Image source={{ uri: book.cover }} style={styles.bookCover} />
+                  <View style={styles.bookInfo}>
+                    <Text style={styles.title}>{book.title}</Text>
+                    <Text style={styles.author}>{book.author}</Text>
+                  </View>
+                </View>
               </Card.Content>
             </Card>
           ))}
@@ -63,11 +62,20 @@ export default function SearchScreen() {
       ) : (
         <ScrollView style={styles.results}>
           {results.length > 0 ? (
-            results.map((book, idx) => (
-              <Card key={idx} style={styles.resultCard}>
+            results.map((book) => (
+              <Card 
+                key={book.id} 
+                style={styles.resultCard}
+                onPress={() => handleBookPress(book)}
+              >
                 <Card.Content>
-                  <Text style={styles.title}>{book.title}</Text>
-                  <Text>{book.author}</Text>
+                  <View style={styles.bookContent}>
+                    <Image source={{ uri: book.cover }} style={styles.bookCover} />
+                    <View style={styles.bookInfo}>
+                      <Text style={styles.title}>{book.title}</Text>
+                      <Text style={styles.author}>{book.author}</Text>
+                    </View>
+                  </View>
                 </Card.Content>
               </Card>
             ))
@@ -112,8 +120,27 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#999',
   },
+  bookContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  bookCover: {
+    width: 60,
+    height: 80,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  bookInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   title: {
     fontSize: 18,
     fontWeight: '600',
+    marginBottom: 4,
+  },
+  author: {
+    fontSize: 14,
+    color: '#666',
   },
 });
