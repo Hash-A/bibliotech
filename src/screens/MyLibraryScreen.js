@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { books } from '../data/books';
+import { BooksContext } from '../context/BooksContext';
 
 export default function MyLibraryScreen() {
   const navigation = useNavigation();
+  const { books } = useContext(BooksContext);
 
   // Only show books that are in the user's library
   const myLibraryBooks = books.filter(book => book.inMyLibrary);

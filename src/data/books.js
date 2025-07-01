@@ -135,6 +135,13 @@ export const searchBooks = (query) => {
   );
 };
 
+export const setBookInLibrary = (id, inLibrary) => {
+  const book = books.find(book => book.id === id);
+  if (book) {
+    book.inMyLibrary = inLibrary;
+  }
+};
+
 /* const books = [
 {
   id: "1",

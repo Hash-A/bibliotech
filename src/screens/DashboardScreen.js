@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Text, Card, Button, Divider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { books } from '../data/books';
+import { BooksContext } from '../context/BooksContext';
 import FeaturedBookCard from '../components/dashboard/FeaturedBookCard';
 import SectionTitle from '../components/common/SectionTitle';
 import PageHeader from '../components/common/PageHeader';
@@ -10,6 +10,7 @@ import ContinueReadingSection from '../components/dashboard/ContinueReadingSecti
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
+  const { books } = useContext(BooksContext);
 
   // Get the first recommended book for "Our Picks"
   const ourPicks = books.filter(book => book.isRecommendation);

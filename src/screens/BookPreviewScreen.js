@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, ScrollView, StyleSheet, Image } from 'react-native';
 import { Card, Text, Divider } from 'react-native-paper';
-import { getBookById, setBookInLibrary } from '../data/books'; // <-- Import the helper
+import { getBookById } from '../data/books'; // Keep getBookById for now
+import { BooksContext } from '../context/BooksContext'; // Add context import
 import ViewButton from '../components/common/ViewButton';
 import AddToLibraryButton from '../components/common/AddToLibraryButton';
 
 export default function BookPreviewScreen({ route, navigation }) {
   const { bookId } = route.params || {}; // Expecting bookId to be passed in navigation
+  const { books, setBookInLibrary } = useContext(BooksContext); // Use context
   const book = getBookById(bookId);
 
   // Use the real inMyLibrary status from the book data
@@ -14,7 +16,7 @@ export default function BookPreviewScreen({ route, navigation }) {
 
   // Handler to "add" the book to the library (demo: only updates local state)
   const handleAddToLibrary = () => {
-    setBookInLibrary(bookId, true); // Update the "database"
+    setBookInLibrary(bookId, true); // Update the context state
     setIsInLibrary(true);           // Update local state for UI
   };
 
@@ -48,12 +50,12 @@ export default function BookPreviewScreen({ route, navigation }) {
       {/* Book Details */}
       <Card style={styles.detailsCard}>
         <Card.Content>
-          <Text style={styles.sectionTitle}>Summary</Text>
+          <Text style={styles.sectionTitle}>📖 Summary</Text>
           <Text style={styles.summary}>{book.summary}</Text>
           
           <Divider style={styles.divider} />
           
-          <Text style={styles.sectionTitle}>Details</Text>
+          <Text style={styles.sectionTitle}>📋 Details</Text>
           <Text style={styles.detail}>ISBN: {book.isbn}</Text>
           <Text style={styles.detail}>Pages: {book.pages}</Text>
         </Card.Content>
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   detailsCard: {
-    margin: 20,
+    margin: 16,
     marginTop: 0,
   },
   sectionTitle: {

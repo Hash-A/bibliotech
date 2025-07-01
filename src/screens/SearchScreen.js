@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, ScrollView, StyleSheet, Image } from 'react-native';
 import { Searchbar, Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { books, searchBooks } from '../data/books';
+import { searchBooks } from '../data/books';
+import { BooksContext } from '../context/BooksContext';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const navigation = useNavigation();
+  const { books } = useContext(BooksContext);
 
   const popularBooks = books.filter(book => book.isPopular);
 
