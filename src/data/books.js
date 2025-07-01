@@ -1,10 +1,4 @@
 // Sample book data for the Bibliotech app
-/*How to use the flags:
-My Library: books.filter(book => book.inMyLibrary)
-Continue Reading: books.filter(book => book.inMyLibrary && book.lastReadPage > 0)
-Popular: books.filter(book => book.isPopular)
-Our Picks: books.filter(book => book.isRecommendation)
-Let me know if you want to adjust the flags or add more sample books!*/
 export const books = [
   {
     id: 1,
@@ -139,13 +133,6 @@ export const searchBooks = (query) => {
     book.title.toLowerCase().includes(query.toLowerCase()) ||
     book.author.toLowerCase().includes(query.toLowerCase())
   );
-};
-
-export const setBookInLibrary = (id, value) => {
-  const book = books.find(b => b.id === id);
-  if (book) {
-    book.inMyLibrary = value;
-  }
 };
 
 /* const books = [

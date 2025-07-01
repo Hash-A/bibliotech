@@ -6,6 +6,7 @@ import { books } from '../data/books';
 import FeaturedBookCard from '../components/dashboard/FeaturedBookCard';
 import SectionTitle from '../components/common/SectionTitle';
 import PageHeader from '../components/common/PageHeader';
+import ContinueReadingSection from '../components/dashboard/ContinueReadingSection';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -35,24 +36,12 @@ export default function DashboardScreen() {
 
         {/* Continue Reading Section (inlined) */}
         <SectionTitle style={{ marginTop: 20 }} >📖 Continue Reading </SectionTitle>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recentList}>
-          {continueReadingBooks.length === 0 ? (
-            <Text style={{ margin: 16, color: '#888' }}>No books to continue reading.</Text>
-          ) : (
-            continueReadingBooks.map((book) => (
-              <Card
-                key={book.id}
-                style={styles.miniCard}
-                onPress={() => navigation.navigate('BookPreview', { bookId: book.id })}
-              >
-                <Card.Cover source={{ uri: book.cover }} style={styles.miniCover} />
-                <Card.Content>
-                  <Text style={styles.miniTitle}>{book.title}</Text>
-                </Card.Content>
-              </Card>
-            ))
-          )}
-        </ScrollView>
+        
+        <ContinueReadingSection
+          books={continueReadingBooks}
+          onBookPress={(book) => navigation.navigate('BookPreview', { bookId: book.id })}
+          styles={styles}
+        />
 
         <Divider style={{ marginVertical: 20 }} />
 
