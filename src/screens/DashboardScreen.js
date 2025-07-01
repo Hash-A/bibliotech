@@ -34,7 +34,7 @@ export default function DashboardScreen() {
         {/* <Divider style={{ marginVertical: 20 }} /> */}
 
         {/* Continue Reading Section (inlined) */}
-        <SectionTitle>📖 Continue Reading </SectionTitle>
+        <SectionTitle style={{ marginTop: 20 }} >📖 Continue Reading </SectionTitle>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recentList}>
           {continueReadingBooks.length === 0 ? (
             <Text style={{ margin: 16, color: '#888' }}>No books to continue reading.</Text>
