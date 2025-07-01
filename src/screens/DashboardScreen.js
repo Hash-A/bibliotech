@@ -22,10 +22,10 @@ export default function DashboardScreen() {
 
   return (
     <>
-      <PageHeader>📚 Bibliotech</PageHeader>
+      <PageHeader> Bibliotech</PageHeader>
       <ScrollView style={styles.container}>
         {/* Featured Book Card */}
-        <SectionTitle>🔥 Our Picks</SectionTitle>
+        <SectionTitle>Our Picks</SectionTitle>
         
         <FeaturedBookCard
           book={featuredBook}
@@ -35,7 +35,7 @@ export default function DashboardScreen() {
         {/* <Divider style={{ marginVertical: 20 }} /> */}
 
         {/* Continue Reading Section (inlined) */}
-        <SectionTitle style={{ marginTop: 20 }} >📖 Continue Reading </SectionTitle>
+        <SectionTitle style={{ marginTop: 20 }} >Continue Reading </SectionTitle>
         
         <ContinueReadingSection
           books={continueReadingBooks}
@@ -85,11 +85,13 @@ const styles = StyleSheet.create({
   miniCard: {
     width: 120,
     marginRight: 12,
+    margin: 12
   },
   miniCover: {
-    height: 140,
+    height: 150,
   },
   miniTitle: {
+    marginVertical: 10,
     fontSize: 14,
   },
   settingsButton: {

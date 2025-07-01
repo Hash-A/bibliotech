@@ -42,7 +42,7 @@ export default function SearchScreen() {
 
       {query.trim() === '' ? (
         <ScrollView style={styles.popularSection}>
-          <Text style={styles.popularTitle}>📚 Browse Popular Books</Text>
+          <Text style={styles.popularTitle}>Browse Popular Books</Text>
           {popularBooks.map((book) => (
             <Card
               key={book.id}

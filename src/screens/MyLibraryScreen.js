@@ -12,7 +12,7 @@ export default function MyLibraryScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.header}>📖 My Library</Text>
+      <Text style={styles.header}>My Library</Text>
       {myLibraryBooks.length === 0 ? (
         <Text style={{ color: '#888', marginTop: 20 }}>No books in your library yet.</Text>
       ) : (

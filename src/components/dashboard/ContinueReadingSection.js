@@ -1,24 +1,23 @@
 import React from 'react';
 import { ScrollView, Text } from 'react-native';
 import { Card } from 'react-native-paper';
+import MiniBookCard from '../bookCards/MiniBookCard';
 
 export default function ContinueReadingSection({ books = [], onBookPress = () => {}, styles = {} }) {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recentList}>
       {books.length === 0 ? (
-        <Text style={{ margin: 16, color: '#888' }}>No books to continue reading.</Text>
+        <Text style={{ margin: 18, color: '#888' }}>No books to continue reading.</Text>
       ) : (
         books.map((book) => (
-          <Card
+          <MiniBookCard
             key={book.id}
-            style={styles.miniCard}
+            book={book}
             onPress={() => onBookPress(book)}
-          >
-            <Card.Cover source={{ uri: book.cover }} style={styles.miniCover} />
-            <Card.Content>
-              <Text style={styles.miniTitle}>{book.title}</Text>
-            </Card.Content>
-          </Card>
+            style={styles.miniCard}
+            coverStyle={styles.miniCover}
+            titleStyle={styles.miniTitle}
+          />
         ))
       )}
     </ScrollView>

@@ -48,12 +48,12 @@ export default function BookPreviewScreen({ route, navigation }) {
       {/* Book Details */}
       <Card style={styles.detailsCard}>
         <Card.Content>
-          <Text style={styles.sectionTitle}>📖 Summary</Text>
+          <Text style={styles.sectionTitle}>Summary</Text>
           <Text style={styles.summary}>{book.summary}</Text>
           
           <Divider style={styles.divider} />
           
-          <Text style={styles.sectionTitle}>📋 Details</Text>
+          <Text style={styles.sectionTitle}>Details</Text>
           <Text style={styles.detail}>ISBN: {book.isbn}</Text>
           <Text style={styles.detail}>Pages: {book.pages}</Text>
         </Card.Content>
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   detailsCard: {
-    margin: 16,
+    margin: 20,
     marginTop: 0,
   },
   sectionTitle: {
