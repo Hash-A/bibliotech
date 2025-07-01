@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Image } from 'react-native';
-import { Searchbar, Card, Button, Text } from 'react-native-paper';
+import { Searchbar, Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { popularBooks, searchBooks } from '../data/books';
+import { books, searchBooks } from '../data/books';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const navigation = useNavigation();
+
+  const popularBooks = books.filter(book => book.isPopular);
 
   const onChangeSearch = (text) => {
     setQuery(text);
@@ -25,8 +27,8 @@ export default function SearchScreen() {
     onChangeSearch(title);
   };
 
-  const handleBookPress = (book) => {
-    navigation.navigate('BookPreview', { book });
+  const handleBookPress = (bookId) => {
+    navigation.navigate('BookPreview', { bookId });
   };
 
   return (
@@ -45,7 +47,7 @@ export default function SearchScreen() {
             <Card
               key={book.id}
               style={styles.popularCard}
-              onPress={() => handleBookPress(book)}
+              onPress={() => handleBookPress(book.id)}
             >
               <Card.Content>
                 <View style={styles.bookContent}>
@@ -66,7 +68,7 @@ export default function SearchScreen() {
               <Card 
                 key={book.id} 
                 style={styles.resultCard}
-                onPress={() => handleBookPress(book)}
+                onPress={() => handleBookPress(book.id)}
               >
                 <Card.Content>
                   <View style={styles.bookContent}>

@@ -1,30 +1,35 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Card, IconButton, Text } from 'react-native-paper';
+import { Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { books } from '../data/books';
 
 export default function MyLibraryScreen() {
-    const navigation = useNavigation();
-    return (
+  const navigation = useNavigation();
+
+  // Only show books that are in the user's library
+  const myLibraryBooks = books.filter(book => book.inMyLibrary);
+
+  return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>📖 My Library</Text>
-        {books.map((book) => (
-        <Card
+      {myLibraryBooks.length === 0 ? (
+        <Text style={{ color: '#888', marginTop: 20 }}>No books in your library yet.</Text>
+      ) : (
+        myLibraryBooks.map((book) => (
+          <Card
             key={book.id}
             style={styles.bookCard}
-            onPress={() => navigation.navigate('Reader', { book })}
-        >
+            onPress={() => navigation.navigate('BookPreview', { bookId: book.id })}
+          >
             <Card.Content>
-            <Text style={styles.title}>{book.title}</Text>
-            <Text>{book.author}</Text>
-            <Text style={styles.status}>
-                {book.downloaded ? '✅ Downloaded' : '❌ Not Downloaded'}{"   "}
-                {book.hasAudio ? '🎧 Audiobook' : '🚫 No Audiobook'}
-            </Text>
+              <Text style={styles.title}>{book.title}</Text>
+              <Text>{book.author}</Text>
+              {/* You can add more book details here if desired */}
             </Card.Content>
-        </Card>
-        ))}
+          </Card>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -42,11 +47,6 @@ const styles = StyleSheet.create({
   },
   bookCard: {
     marginBottom: 15,
-  },
-  status: {
-    marginTop: 8,
-    color: '#555',
-    fontSize: 14,
   },
   title: {
     fontSize: 18,

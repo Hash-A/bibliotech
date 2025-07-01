@@ -1,10 +1,20 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
+import { getBookById } from '../data/books';
 
 export default function ReaderScreen({ route }) {
-  const { book } = route.params || {};
-  const title = book?.title || 'No Title';
+  const { bookId } = route.params || {};
+  const book = getBookById(bookId);
+
+  if (!book) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Book not found.</Text>
+      </View>
+    );
+  }
+
   const content = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
   Sed sed nunc nec velit finibus finibus. Proin porta urna a malesuada malesuada. 
   Suspendisse potenti. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
@@ -13,7 +23,7 @@ export default function ReaderScreen({ route }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title}>{book.title}</Text>
       <Text style={styles.content}>{content}</Text>
     </ScrollView>
   );

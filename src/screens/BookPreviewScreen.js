@@ -1,47 +1,45 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Image } from 'react-native';
-import { Card, Text, Button, Divider } from 'react-native-paper';
+import { Card, Text, Divider } from 'react-native-paper';
+import { getBookById, setBookInLibrary } from '../data/books'; // <-- Import the helper
+import ViewButton from '../components/common/ViewButton';
+import AddToLibraryButton from '../components/common/AddToLibraryButton';
 
 export default function BookPreviewScreen({ route, navigation }) {
-  const { book } = route.params || {};
-  const [isInLibrary, setIsInLibrary] = useState(false);
+  const { bookId } = route.params || {}; // Expecting bookId to be passed in navigation
+  const book = getBookById(bookId);
 
-  // Sample book data - in a real app, this would come from an API or database
-  const bookData = {
-    title: book?.title || 'Sample Book Title',
-    author: book?.author || 'Author Name',
-    cover: 'https://picsum.photos/300/400', // Replace with actual cover image
-    publishDate: 'January 15, 2023',
-    summary: `This is a compelling story that explores themes of love, loss, and redemption. 
-    
-    The narrative follows the journey of our protagonist as they navigate through life's challenges and discover the true meaning of happiness. With rich character development and vivid descriptions, this book will keep you engaged from the first page to the last.
-    
-    Set against the backdrop of a changing world, the story weaves together multiple plot lines that converge in unexpected ways, creating a reading experience that is both thought-provoking and entertaining.`,
-    isbn: '978-0-123456-78-9',
-    pages: 320,
-    genre: 'Fiction',
-  };
+  // Use the real inMyLibrary status from the book data
+  const [isInLibrary, setIsInLibrary] = useState(book?.inMyLibrary || false);
 
+  // Handler to "add" the book to the library (demo: only updates local state)
   const handleAddToLibrary = () => {
-    setIsInLibrary(true);
-    // Here you would typically add the book to the user's library in your app's state/database
-    console.log('Added to library:', bookData.title);
+    setBookInLibrary(bookId, true); // Update the "database"
+    setIsInLibrary(true);           // Update local state for UI
   };
 
   const handleReadBook = () => {
-    navigation.navigate('Reader', { book: bookData });
+    navigation.navigate('Reader', { bookId });
   };
+
+  if (!book) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Book not found.</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
       {/* Book Cover and Basic Info */}
       <View style={styles.header}>
-        <Image source={{ uri: bookData.cover }} style={styles.cover} />
+        <Image source={{ uri: book.cover }} style={styles.cover} />
         <View style={styles.basicInfo}>
-          <Text style={styles.title}>{bookData.title}</Text>
-          <Text style={styles.author}>by {bookData.author}</Text>
-          <Text style={styles.publishDate}>Published: {bookData.publishDate}</Text>
-          <Text style={styles.genre}>{bookData.genre}</Text>
+          <Text style={styles.title}>{book.title}</Text>
+          <Text style={styles.author}>by {book.author}</Text>
+          <Text style={styles.publishDate}>Published: {book.publishDate}</Text>
+          <Text style={styles.genre}>{book.genres?.join(', ')}</Text>
         </View>
       </View>
 
@@ -51,46 +49,27 @@ export default function BookPreviewScreen({ route, navigation }) {
       <Card style={styles.detailsCard}>
         <Card.Content>
           <Text style={styles.sectionTitle}>📖 Summary</Text>
-          <Text style={styles.summary}>{bookData.summary}</Text>
+          <Text style={styles.summary}>{book.summary}</Text>
           
           <Divider style={styles.divider} />
           
           <Text style={styles.sectionTitle}>📋 Details</Text>
-          <Text style={styles.detail}>ISBN: {bookData.isbn}</Text>
-          <Text style={styles.detail}>Pages: {bookData.pages}</Text>
+          <Text style={styles.detail}>ISBN: {book.isbn}</Text>
+          <Text style={styles.detail}>Pages: {book.pages}</Text>
         </Card.Content>
       </Card>
 
       {/* Action Buttons */}
       <View style={styles.actions}>
-        {!isInLibrary ? (
-          <Button
-            mode="contained"
-            icon="plus"
-            style={styles.addButton}
-            onPress={handleAddToLibrary}
-          >
-            Add to Library
-          </Button>
-        ) : (
-          <Button
-            mode="outlined"
-            icon="check"
-            style={styles.addedButton}
-            disabled
-          >
-            Added to Library
-          </Button>
-        )}
-        
-        <Button
-          mode="outlined"
-          icon="book-open-variant"
-          style={styles.readButton}
+        <AddToLibraryButton
+          onPress={handleAddToLibrary}
+          inLibrary={isInLibrary}
+          style={styles.addButton}
+        />
+        <ViewButton
           onPress={handleReadBook}
-        >
-          Read Book
-        </Button>
+          style={styles.readButton}
+        />
       </View>
     </ScrollView>
   );
@@ -162,9 +141,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   addButton: {
-    marginBottom: 8,
-  },
-  addedButton: {
     marginBottom: 8,
   },
   readButton: {

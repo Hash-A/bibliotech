@@ -1,11 +1,20 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Text, Card, Button, Avatar, Divider } from 'react-native-paper';
+import { Text, Card, Button, Divider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { featuredBook } from '../data/books';
+import { books } from '../data/books';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
+
+  // Get the first recommended book for "Our Picks"
+  const ourPicks = books.filter(book => book.isRecommendation);
+  const featuredBook = ourPicks[0];
+
+  // Get books for "Continue Reading"
+  const continueReadingBooks = books.filter(
+    book => book.inMyLibrary && book.lastReadPage > 0
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -14,32 +23,38 @@ export default function DashboardScreen() {
 
       {/* Featured Book Card */}
       <Text style={styles.sectionTitle}>🔥 Our Picks</Text>
-      <Card style={styles.featuredCard}>
-        <Card.Cover source={{ uri: featuredBook.cover }} />
-        <Card.Content>
-          <Text style={styles.title}>{featuredBook.title}</Text>
-          <Text>By {featuredBook.author}</Text>
-        </Card.Content>
-        <Card.Actions>
-          <Button onPress={() => navigation.navigate('BookPreview', { book: featuredBook })}>View</Button>
-          <Button onPress={() => {}}>Add to Library</Button>
-        </Card.Actions>
-      </Card>
+      {featuredBook && (
+        <Card
+          style={styles.featuredCard}
+          onPress={() => navigation.navigate('BookPreview', { bookId: featuredBook.id })}
+        >
+          <Card.Cover source={{ uri: featuredBook.cover }} />
+          <Card.Content>
+            <Text style={styles.title}>{featuredBook.title}</Text>
+            <Text>By {featuredBook.author}</Text>
+          </Card.Content>
+        </Card>
+      )}
 
       {/* Recently Opened Books */}
       <Text style={styles.sectionTitle}>📖 Continue Reading </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.recentList}>
-        {[1, 2, 3].map((num) => (
-          <Card key={num} style={styles.miniCard}>
-            <Card.Cover source={{ uri: featuredBook.cover }} style={styles.miniCover} />
-            <Card.Content>
-              <Text style={styles.miniTitle}>Book {num}</Text>
-            </Card.Content>
-            <Card.Actions>
-              <Button onPress={() => navigation.navigate('BookPreview', { book: { ...featuredBook, title: `Book ${num}` } })}>View</Button>
-            </Card.Actions>
-          </Card>
-        ))}
+        {continueReadingBooks.length === 0 ? (
+          <Text style={{ margin: 16, color: '#888' }}>No books to continue reading.</Text>
+        ) : (
+          continueReadingBooks.map((book) => (
+            <Card
+              key={book.id}
+              style={styles.miniCard}
+              onPress={() => navigation.navigate('BookPreview', { bookId: book.id })}
+            >
+              <Card.Cover source={{ uri: book.cover }} style={styles.miniCover} />
+              <Card.Content>
+                <Text style={styles.miniTitle}>{book.title}</Text>
+              </Card.Content>
+            </Card>
+          ))
+        )}
       </ScrollView>
 
       <Divider style={{ marginVertical: 20 }} />
