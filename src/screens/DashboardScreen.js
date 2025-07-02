@@ -41,7 +41,6 @@ export default function DashboardScreen() {
         <ContinueReadingSection
           books={continueReadingBooks}
           onBookPress={(book) => navigation.navigate('BookPreview', { bookId: book.id })}
-          styles={styles}
         />
 
         <Divider style={{ marginVertical: 20 }} />
@@ -65,42 +64,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
   },
-  header: {
-    marginTop: 60,
-    fontSize: 26,
-    marginVertical: 12,
-    fontWeight: 'bold',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    marginTop: 20,
-    marginBottom: 10,
-    fontWeight: '600',
-  },
-  featuredCard: {
-    marginBottom: 10,
-  },
-  recentList: {
-    flexDirection: 'row',
-  },
-  miniCard: {
-    width: 120,
-    marginRight: 12,
-    margin: 12
-  },
-  miniCover: {
-    height: 150,
-  },
-  miniTitle: {
-    marginVertical: 10,
-    fontSize: 14,
-  },
   settingsButton: {
     alignSelf: 'center',
     marginTop: 10,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 });
