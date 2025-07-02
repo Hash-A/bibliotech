@@ -4,6 +4,7 @@ import { Searchbar, Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { searchBooks } from '../data/books';
 import { BooksContext } from '../context/BooksContext';
+import SearchBar from '../components/search/SearchBar';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
@@ -18,7 +19,6 @@ export default function SearchScreen() {
     if (text.trim() === '') {
       setResults([]);
     } else {
-      // Use the search function from books data
       const filtered = searchBooks(text);
       setResults(filtered);
     }
@@ -35,11 +35,9 @@ export default function SearchScreen() {
 
   return (
     <View style={styles.container}>
-      <Searchbar
-        placeholder="Search by title or author"
+      <SearchBar
         onChangeText={onChangeSearch}
         value={query}
-        style={styles.searchbar}
       />
 
       {query.trim() === '' ? (
@@ -97,10 +95,6 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     flex: 1,
-  },
-  searchbar: {
-    marginTop: 60,
-    marginBottom: 20,
   },
   popularSection: {
     marginTop: 10,
