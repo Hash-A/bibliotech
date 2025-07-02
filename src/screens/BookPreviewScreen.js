@@ -36,7 +36,7 @@ export default function BookPreviewScreen({ route, navigation }) {
       {/* Book Header*/}
       <BookHeader book={book} />
       
-      <Divider style={styles.divider} />
+      <Divider style={{marginVertical: 16}} />
 
       {/* Book Details */}
       <BookDetails book={book} />
@@ -65,9 +65,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  divider: {
-    marginVertical: 16,
   },
   actions: {
     padding: 16,
