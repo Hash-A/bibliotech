@@ -9,17 +9,14 @@ import BookHeader from '../components/bookPreview/BookHeader'; // Add this impor
 import BookDetails from '../components/bookPreview/BookDetails'; // Add this import
 
 export default function BookPreviewScreen({ route, navigation }) {
-  const { bookId } = route.params || {}; // Expecting bookId to be passed in navigation
-  const { books, setBookInLibrary } = useContext(BooksContext); // Use context
-  const book = getBookById(bookId);
+  const { bookId } = route.params || {};
+  const { books, setBookInLibrary } = useContext(BooksContext);
+  
+  // Get the fresh book data from context instead of using getBookById
+  const book = books.find(book => book.id === bookId);
 
-  // Use the real inMyLibrary status from the book data
-  const [isInLibrary, setIsInLibrary] = useState(book?.inMyLibrary || false);
-
-  // Handler to "add" the book to the library (demo: only updates local state)
   const handleAddToLibrary = () => {
-    setBookInLibrary(bookId, true); // Update the context state
-    setIsInLibrary(true);           // Update local state for UI
+    setBookInLibrary(bookId, true);
   };
 
   const handleReadBook = () => {
@@ -48,14 +45,13 @@ export default function BookPreviewScreen({ route, navigation }) {
       <View style={styles.actions}>
         <AddToLibraryButton
           onPress={handleAddToLibrary}
-          inLibrary={isInLibrary}
-          style={styles.addButton}
+          inLibrary={book.inMyLibrary || false}
         />
         <ViewButton
           onPress={handleReadBook}
-          style={styles.readButton}
         />
       </View>
+      
     </ScrollView>
   );
 }
@@ -76,11 +72,5 @@ const styles = StyleSheet.create({
   actions: {
     padding: 16,
     gap: 12,
-  },
-  addButton: {
-    marginBottom: 8,
-  },
-  readButton: {
-    marginBottom: 8,
   },
 });
