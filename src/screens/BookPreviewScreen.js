@@ -5,6 +5,8 @@ import { getBookById } from '../data/books'; // Keep getBookById for now
 import { BooksContext } from '../context/BooksContext'; // Add context import
 import ViewButton from '../components/common/ViewButton';
 import AddToLibraryButton from '../components/common/AddToLibraryButton';
+import BookHeader from '../components/bookPreview/BookHeader'; // Add this import
+import BookDetails from '../components/bookPreview/BookDetails'; // Add this import
 
 export default function BookPreviewScreen({ route, navigation }) {
   const { bookId } = route.params || {}; // Expecting bookId to be passed in navigation
@@ -26,7 +28,7 @@ export default function BookPreviewScreen({ route, navigation }) {
 
   if (!book) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.errorContainer}>
         <Text>Book not found.</Text>
       </View>
     );
@@ -34,32 +36,13 @@ export default function BookPreviewScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Book Cover and Basic Info */}
-      <View style={styles.header}>
-        <Image source={{ uri: book.cover }} style={styles.cover} />
-        <View style={styles.basicInfo}>
-          <Text style={styles.title}>{book.title}</Text>
-          <Text style={styles.author}>by {book.author}</Text>
-          <Text style={styles.publishDate}>Published: {book.publishDate}</Text>
-          <Text style={styles.genre}>{book.genres?.join(', ')}</Text>
-        </View>
-      </View>
-
+      {/* Book Header*/}
+      <BookHeader book={book} />
+      
       <Divider style={styles.divider} />
 
       {/* Book Details */}
-      <Card style={styles.detailsCard}>
-        <Card.Content>
-          <Text style={styles.sectionTitle}>📖 Summary</Text>
-          <Text style={styles.summary}>{book.summary}</Text>
-          
-          <Divider style={styles.divider} />
-          
-          <Text style={styles.sectionTitle}>📋 Details</Text>
-          <Text style={styles.detail}>ISBN: {book.isbn}</Text>
-          <Text style={styles.detail}>Pages: {book.pages}</Text>
-        </Card.Content>
-      </Card>
+      <BookDetails book={book} />
 
       {/* Action Buttons */}
       <View style={styles.actions}>
@@ -82,61 +65,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    padding: 16,
-    paddingTop: 80,
-  },
-  cover: {
-    width: 120,
-    height: 160,
-    borderRadius: 8,
-    marginRight: 16,
-  },
-  basicInfo: {
+  errorContainer: {
     flex: 1,
     justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  author: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 8,
-  },
-  publishDate: {
-    fontSize: 14,
-    color: '#888',
-    marginBottom: 4,
-  },
-  genre: {
-    fontSize: 14,
-    color: '#888',
+    alignItems: 'center',
   },
   divider: {
     marginVertical: 16,
-  },
-  detailsCard: {
-    margin: 16,
-    marginTop: 0,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  summary: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#333',
-  },
-  detail: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
   },
   actions: {
     padding: 16,
