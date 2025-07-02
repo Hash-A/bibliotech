@@ -7,6 +7,7 @@ import FeaturedBookCard from '../components/dashboard/FeaturedBookCard';
 import SectionTitle from '../components/common/SectionTitle';
 import PageHeader from '../components/common/PageHeader';
 import ContinueReadingSection from '../components/dashboard/ContinueReadingSection';
+import SettingsButton from '../components/common/SettingsButton';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
@@ -20,6 +21,12 @@ export default function DashboardScreen() {
   const continueReadingBooks = books.filter(
     book => book.inMyLibrary && book.lastReadPage > 0
   );
+
+  const handleSettingsPress = () => {
+    console.log('Navigate to Settings');
+    // You can add actual navigation here later
+    // navigation.navigate('Settings');
+  };
 
   return (
     <>
@@ -46,14 +53,8 @@ export default function DashboardScreen() {
         <Divider style={{ marginVertical: 20 }} />
 
         {/* Settings Button */}
-        <Button
-          icon="cog"
-          mode="outlined"
-          style={styles.settingsButton}
-          onPress={() => console.log('Navigate to Settings')}
-        >
-          Settings
-        </Button>
+        <SettingsButton onPress={handleSettingsPress} />
+        
       </ScrollView>
     </>
   );
@@ -63,9 +64,5 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     padding: 20,
-  },
-  settingsButton: {
-    alignSelf: 'center',
-    marginTop: 10,
   },
 });
