@@ -1,32 +1,43 @@
-import React, { useState, useContext } from 'react';
-import { View, ScrollView, StyleSheet, Image } from 'react-native';
-import { Searchbar, Card, Text } from 'react-native-paper';
+import React, { useState, useContext, useEffect } from 'react';
+import { View, ScrollView, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { searchBooks } from '../data/books';
 import { BooksContext } from '../context/BooksContext';
 import SearchBar from '../components/search/SearchBar';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-  const { books } = useContext(BooksContext);
+  const { allBooks, getBooks } = useContext(BooksContext);
 
-  const popularBooks = books.filter(book => book.isPopular);
+  const popularBooks = allBooks.filter(book => book.isPopular);
 
-  const onChangeSearch = (text) => {
-    setQuery(text);
-    if (text.trim() === '') {
-      setResults([]);
-    } else {
-      const filtered = searchBooks(text);
-      setResults(filtered);
-    }
-  };
+  // Debounce: delay search until typing stops
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (query.trim() === '') {
+        setResults([]);
+        return;
+      }
+
+      setLoading(true);
+      getBooks(query).then((books) => {
+        setResults(books);
+        setLoading(false);
+      }).catch(err => {
+        console.error('Search failed:', err);
+        setLoading(false);
+      });
+
+    }, 300); // debounce delay
+
+    return () => clearTimeout(timeout);
+  }, [query]);
 
   const handlePopularPress = (title) => {
     setQuery(title);
-    onChangeSearch(title);
   };
 
   const handleBookPress = (bookId) => {
@@ -36,7 +47,7 @@ export default function SearchScreen() {
   return (
     <View style={styles.container}>
       <SearchBar
-        onChangeText={onChangeSearch}
+        onChangeText={setQuery}
         value={query}
       />
 
@@ -63,10 +74,12 @@ export default function SearchScreen() {
         </ScrollView>
       ) : (
         <ScrollView style={styles.results}>
-          {results.length > 0 ? (
+          {loading ? (
+            <ActivityIndicator size="large" style={{ marginTop: 20 }} />
+          ) : results.length > 0 ? (
             results.map((book) => (
-              <Card 
-                key={book.id} 
+              <Card
+                key={book.id}
                 style={styles.resultCard}
                 onPress={() => handleBookPress(book.id)}
               >
@@ -123,9 +136,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   bookCover: {
-    width: 60,
-    height: 80,
-    borderRadius: 6,
+    width: 90,
+    height: 120,
+    borderRadius: 2,
     marginRight: 12,
   },
   bookInfo: {

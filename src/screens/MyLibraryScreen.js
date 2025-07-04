@@ -6,10 +6,12 @@ import { BooksContext } from '../context/BooksContext';
 
 export default function MyLibraryScreen() {
   const navigation = useNavigation();
-  const { books } = useContext(BooksContext);
+  const { allBooks } = useContext(BooksContext);
+
+  const books = allBooks;
 
   // Only show books that are in the user's library
-  const myLibraryBooks = books.filter(book => book.inMyLibrary);
+  const myLibraryBooks = books.filter(book => book.inLibrary);
 
   return (
     <ScrollView style={styles.container}>

@@ -11,15 +11,19 @@ import SettingsButton from '../components/common/SettingsButton';
 
 export default function DashboardScreen() {
   const navigation = useNavigation();
-  const { books } = useContext(BooksContext);
+  const { allBooks } = useContext(BooksContext); // should not be a constant array, should be fetched from some DB
+  const books = allBooks;
 
+  // const { booksFetcher } = useContext(BooksContext) ; // booksFetcher: () => book[] is a function that sends api request (might need backend if i am pulling from multiple websites)
+  // const books = booksFetcher();
   // Get the first recommended book for "Our Picks"
+
   const ourPicks = books.filter(book => book.isRecommendation);
-  const featuredBook = ourPicks[0];
+  const featuredBook = ourPicks[0]; // if i have multiple books to possibly recommend ourPicks[number.rand()];
 
   // Get books for "Continue Reading"
   const continueReadingBooks = books.filter(
-    book => book.inMyLibrary && book.lastReadPage > 0
+    book => book.inLibrary && book.lastReadPage > 0
   );
 
   const handleSettingsPress = () => {

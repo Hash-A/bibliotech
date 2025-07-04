@@ -11,9 +11,9 @@ export default function BookDetails({ book }) {
         
         <Divider style={styles.divider} />
         
-        <Text style={styles.sectionTitle}>📋 Details</Text>
+        {/* <Text style={styles.sectionTitle}>📋 Details</Text>
         <Text style={styles.detail}>ISBN: {book.isbn}</Text>
-        <Text style={styles.detail}>Pages: {book.pages}</Text>
+        <Text style={styles.detail}>Pages: {book.pages}</Text> */}
       </Card.Content>
     </Card>
   );

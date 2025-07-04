@@ -10,13 +10,14 @@ import BookDetails from '../components/bookPreview/BookDetails'; // Add this imp
 
 export default function BookPreviewScreen({ route, navigation }) {
   const { bookId } = route.params || {};
-  const { books, setBookInLibrary } = useContext(BooksContext);
+  const { allBooks, setBookInLibrary } = useContext(BooksContext);
+  const books = allBooks;
   
   // Get the fresh book data from context instead of using getBookById
   const book = books.find(book => book.id === bookId);
 
   const handleAddToLibrary = () => {
-    setBookInLibrary(bookId, true);
+    setBookInLibrary(bookId, !Boolean(book.inLibrary));
   };
 
   const handleReadBook = () => {
@@ -45,7 +46,7 @@ export default function BookPreviewScreen({ route, navigation }) {
       <View style={styles.actions}>
         <AddToLibraryButton
           onPress={handleAddToLibrary}
-          inLibrary={book.inMyLibrary || false}
+          inLibrary={Boolean(book.inLibrary)}
         />
         <ViewButton
           onPress={handleReadBook}

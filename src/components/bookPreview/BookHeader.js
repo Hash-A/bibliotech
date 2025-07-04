@@ -10,7 +10,9 @@ export default function BookHeader({ book }) {
         <Text style={styles.title}>{book.title}</Text>
         <Text style={styles.author}>by {book.author}</Text>
         <Text style={styles.publishDate}>Published: {book.publishDate}</Text>
-        <Text style={styles.genre}>{book.genres?.join(', ')}</Text>
+        {Array.isArray(book.genres) && book.genres.length > 0 && (
+          <Text style={styles.genre}>{book.genres.join(', ')}</Text>
+        )}
       </View>
     </View>
   );
@@ -20,11 +22,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     padding: 16,
-    paddingTop: 80,
+    paddingTop: 30,
   },
   cover: {
-    width: 120,
-    height: 160,
+    width: 180,
+    height: 240,
     borderRadius: 8,
     marginRight: 16,
   },

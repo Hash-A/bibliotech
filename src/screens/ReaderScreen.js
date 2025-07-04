@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { BooksContext } from '../context/BooksContext';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { getBookById } from '../data/books';
 
 export default function ReaderScreen({ route }) {
   const { bookId } = route.params || {};
-  const book = getBookById(bookId);
+  const { allBooks, downloadBook, getDownloadedBookContent } = useContext(BooksContext);
+
+  const book = getBookById(allBooks, bookId);
 
   if (!book) {
     return (
@@ -15,11 +18,22 @@ export default function ReaderScreen({ route }) {
     );
   }
 
-  const content = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-  Sed sed nunc nec velit finibus finibus. Proin porta urna a malesuada malesuada. 
-  Suspendisse potenti. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-  
-  (More book content would appear here.)`;
+  const [content, setContent] = useState("loading...");
+
+  useEffect(() => {
+    if (book.downloaded !== 1) {
+      downloadBook(bookId, book.downloadUrl).then(()=>{
+        getDownloadedBookContent(bookId).then((newContent) => {
+          setContent(newContent);
+        });
+    
+      });
+    } else {
+      getDownloadedBookContent(bookId).then((newContent) => {
+        setContent(newContent);
+      });
+    }
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
