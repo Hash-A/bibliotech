@@ -150,7 +150,7 @@ export function BooksProvider({ children }) {
     try {
       console.log("fetching from api with hint: ", hint);
       const apiBooks =  await fetchFromApi(hint);
-      console.log(apiBooks);
+      // console.log(apiBooks);
       const existingIds = new Set(localBooks.map(b => b.id));
       const newBooks = apiBooks.filter(b => !existingIds.has(b.id));
 
@@ -199,8 +199,8 @@ export function BooksProvider({ children }) {
   
         console.log("Is db open?", !!db.current && typeof db.current.withTransactionAsync === 'function');
   
-        await helpers.clearDatabase(db.current);
-        console.log("clearing done");
+        // await helpers.clearDatabase(db.current);
+        // console.log("clearing done");
   
         const fetchedBooks = await helpers.getBooks(db.current, null);
   
