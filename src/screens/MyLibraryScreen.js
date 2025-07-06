@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { BooksContext } from '../context/BooksContext';
+import StandardBookCard from '../components/bookCards/StandardBookCard';
 
 export default function MyLibraryScreen() {
   const navigation = useNavigation();
@@ -20,17 +21,11 @@ export default function MyLibraryScreen() {
         <Text style={{ color: '#888', marginTop: 20 }}>No books in your library yet.</Text>
       ) : (
         myLibraryBooks.map((book) => (
-          <Card
+          <StandardBookCard
             key={book.id}
-            style={styles.bookCard}
+            book={book}
             onPress={() => navigation.navigate('BookPreview', { bookId: book.id })}
-          >
-            <Card.Content>
-              <Text style={styles.title}>{book.title}</Text>
-              <Text>{book.author}</Text>
-              {/* You can add more book details here if desired */}
-            </Card.Content>
-          </Card>
+          />
         ))
       )}
     </ScrollView>

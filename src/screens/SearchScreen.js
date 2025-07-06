@@ -4,6 +4,7 @@ import { Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { BooksContext } from '../context/BooksContext';
 import SearchBar from '../components/search/SearchBar';
+import StandardBookCard from '../components/bookCards/StandardBookCard';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
@@ -78,21 +79,7 @@ export default function SearchScreen() {
             <ActivityIndicator size="large" style={{ marginTop: 20 }} />
           ) : results.length > 0 ? (
             results.map((book) => (
-              <Card
-                key={book.id}
-                style={styles.resultCard}
-                onPress={() => handleBookPress(book.id)}
-              >
-                <Card.Content>
-                  <View style={styles.bookContent}>
-                    <Image source={{ uri: book.cover }} style={styles.bookCover} />
-                    <View style={styles.bookInfo}>
-                      <Text style={styles.title}>{book.title}</Text>
-                      <Text style={styles.author}>{book.author}</Text>
-                    </View>
-                  </View>
-                </Card.Content>
-              </Card>
+              <StandardBookCard key={book.id} book={book} onPress={handleBookPress} />
             ))
           ) : (
             <Text style={styles.noResults}>No results found.</Text>
