@@ -5,15 +5,17 @@ import { useNavigation } from '@react-navigation/native';
 import { BooksContext } from '../context/BooksContext';
 import SearchBar from '../components/search/SearchBar';
 import StandardBookCard from '../components/bookCards/StandardBookCard';
+import * as helpers from '../db/helpers'; // if not already imported
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-  const { allBooks, getBooks } = useContext(BooksContext);
+  const { allBooks, getBooks, db } = useContext(BooksContext);
 
-  const popularBooks = allBooks.filter(book => book.isPopular);
+  console.log('allBooks:', allBooks);
+  const popularBooks = allBooks.slice(0, 92);
 
   // Debounce: delay search until typing stops
   useEffect(() => {
@@ -32,10 +34,20 @@ export default function SearchScreen() {
         setLoading(false);
       });
 
-    }, 300); // debounce delay
+    }, 100); // debounce delay
 
     return () => clearTimeout(timeout);
   }, [query]);
+
+  useEffect(() => {
+    const fetchPopular = async () => {
+      if (db?.current) {
+        const books = await helpers.getPopularBooks(db.current, 92);
+        setPopularBooks(books);
+      }
+    };
+    fetchPopular();
+  }, [db]);
 
   const handlePopularPress = (title) => {
     setQuery(title);
@@ -54,23 +66,13 @@ export default function SearchScreen() {
 
       {query.trim() === '' ? (
         <ScrollView style={styles.popularSection}>
-          <Text style={styles.popularTitle}>Browse Popular Books</Text>
-          {popularBooks.map((book) => (
-            <Card
+          <Text style={styles.popularTitle}>Browse popular books</Text>
+          {popularBooks.map(book => (
+            <StandardBookCard
               key={book.id}
-              style={styles.popularCard}
+              book={book}
               onPress={() => handleBookPress(book.id)}
-            >
-              <Card.Content>
-                <View style={styles.bookContent}>
-                  <Image source={{ uri: book.cover }} style={styles.bookCover} />
-                  <View style={styles.bookInfo}>
-                    <Text style={styles.title}>{book.title}</Text>
-                    <Text style={styles.author}>{book.author}</Text>
-                  </View>
-                </View>
-              </Card.Content>
-            </Card>
+            />
           ))}
         </ScrollView>
       ) : (
@@ -104,41 +106,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontWeight: '600',
   },
-  popularCard: {
-    marginBottom: 15,
-  },
   results: {
     marginTop: 10,
-  },
-  resultCard: {
-    marginBottom: 10,
   },
   noResults: {
     marginTop: 20,
     textAlign: 'center',
     color: '#999',
-  },
-  bookContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  bookCover: {
-    width: 90,
-    height: 120,
-    borderRadius: 2,
-    marginRight: 12,
-  },
-  bookInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  author: {
-    fontSize: 14,
-    color: '#666',
   },
 });

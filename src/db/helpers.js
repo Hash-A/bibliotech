@@ -164,3 +164,8 @@ export async function toggleBookmark(db, bookId, charIndex) {
     console.error(`Error in toggleBookmark (bookId: ${bookId}, charIndex: ${charIndex}):`, error);
   }
 }
+
+export async function getPopularBooks(db, limit = 92) {
+  // This assumes your books are inserted in popularity order (from the API)
+  return await db.getAllAsync(`SELECT * FROM books ORDER BY id ASC LIMIT ?`, limit);
+}

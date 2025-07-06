@@ -107,6 +107,7 @@ import * as SQLite from 'expo-sqlite';
 import { initDatabase } from '../db/schema';
 import * as helpers from '../db/helpers';
 import { fetchBooks as fetchFromApi } from '../api/gutendex';
+import { prepopulateDatabase } from '../db/prepopulate';
 
 export const BooksContext = createContext();
 
@@ -195,13 +196,15 @@ export function BooksProvider({ children }) {
         db.current = newdb;
   
         await initDatabase(db.current);
-        console.log("init done");
   
-        console.log("Is db open?", !!db.current && typeof db.current.withTransactionAsync === 'function');
+        // 1. Check if database is empty
+        const existingBooks = await helpers.getBooks(db.current, null);
+        if (existingBooks.length === 0) {
+          // 2. Prepopulate if empty
+          await prepopulateDatabase(db.current);
+        }
   
-        // await helpers.clearDatabase(db.current);
-        // console.log("clearing done");
-  
+        // 3. Now run your normal fetch logic
         const fetchedBooks = await helpers.getBooks(db.current, null);
   
         if (fetchedBooks.length === 0) {
