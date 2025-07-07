@@ -165,7 +165,7 @@ export async function toggleBookmark(db, bookId, charIndex) {
   }
 }
 
-export async function getPopularBooks(db, limit = 92) {
+export async function getPopularBooks(db, limit = 96) {
   // This assumes your books are inserted in popularity order (from the API)
   return await db.getAllAsync(`SELECT * FROM books ORDER BY id ASC LIMIT ?`, limit);
 }

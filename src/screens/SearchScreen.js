@@ -15,7 +15,7 @@ export default function SearchScreen() {
   const { allBooks, getBooks, db } = useContext(BooksContext);
 
   console.log('allBooks:', allBooks);
-  const popularBooks = allBooks.slice(0, 92);
+  const popularBooks = allBooks.slice(0, 96);
 
   // Debounce: delay search until typing stops
   useEffect(() => {

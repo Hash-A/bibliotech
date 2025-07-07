@@ -1,4 +1,3 @@
-// src/components/common/ViewButton.js
 import React from 'react';
 import { Button } from 'react-native-paper';
 
