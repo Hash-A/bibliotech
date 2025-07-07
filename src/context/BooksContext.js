@@ -66,23 +66,20 @@
 //   });
 // }
 
-
 // /*
 
-// None Export (internal) methods: 
+// None Export (internal) methods:
 //   - fetchBooks(hint: string | null) => Book[]
 
 // Book Context Methods:
 //   - setBookInLibrary(book_id: number, inLibrary: boolean) // informs the database that the book is (or isnt) in the library
-//   - getBooks(hint: string | null) => Book[] // fetches a list of min(n, 32) books, if `hint` is provided its used as search criterion 
-//   - downloadBook(book_id: number) // downloads book 
-//   - getBook(book_id: number) => Book // fetches downloaded book 
+//   - getBooks(hint: string | null) => Book[] // fetches a list of min(n, 32) books, if `hint` is provided its used as search criterion
+//   - downloadBook(book_id: number) // downloads book
+//   - getBook(book_id: number) => Book // fetches downloaded book
 //   - toggleBookmark(book_id: number, char_index: number) // toggles a bookmark at the specified index in the specified book
 // */
 // export function BooksProvider({ children }) {
 //   const [books, setBooks] = useState(initialBooks);
-
-  
 
 //   const setBookInLibrary = (id, inLibrary) => {
 //     setBooks(prevBooks =>
@@ -99,144 +96,139 @@
 //   );
 // }
 
-
-
-
-import React, { createContext, useEffect, useRef, useState } from 'react';
-import * as SQLite from 'expo-sqlite';
-import { initDatabase } from '../db/schema';
-import * as helpers from '../db/helpers';
-import { fetchBooks as fetchFromApi } from '../api/gutendex';
-import { prepopulateDatabase } from '../db/prepopulate';
+import React, { createContext, useEffect, useRef, useState } from "react";
+import * as SQLite from "expo-sqlite";
+import { initDatabase } from "../db/schema";
+import * as helpers from "../db/helpers";
+import { fetchBooks as fetchFromApi } from "../api/gutendex";
+import { prepopulateDatabase } from "../db/prepopulate";
 
 export const BooksContext = createContext();
 
 export function BooksProvider({ children }) {
-  const [books, setBooks] = useState([]);
-  const [allBooks, setAllBooks] = useState([]);
-  const db = useRef(null);
+    const [books, setBooks] = useState([]);
+    const [allBooks, setAllBooks] = useState([]);
+    const db = useRef(null);
 
-  const fetchBooks = async (hint) => {
-    const results = await fetchFromApi(hint);
-    setBooks(results);
-    return results;
-  };
-
-  const setBookInLibrary = async (id, inLibrary) => {
-    await helpers.setBookInLibrary(db.current, id, inLibrary);
-    setBooks(prev =>
-      prev.map(book =>
-        book.id === id ? { ...book, inLibrary } : book
-      )
-    );
-    setAllBooks(prev =>
-      prev.map(book =>
-        book.id === id ? { ...book, inLibrary } : book
-      )
-    );
-  };
-
-  // getBooks tries local DB first, then supplements from API if <32 results
-  const getBooks = async (hint) => {
-    console.log("in getBooks");
-    const localBooks = await helpers.getBooks(db.current, hint);
-    // console.log("searched database: ", localBooks);
-
-    const needed = 32 - localBooks.length;
-    // console.log("needed: ", needed);
-    if (needed <= 0) {
-      return localBooks.slice(0, 32);
-    }
-
-    try {
-      console.log("fetching from api with hint: ", hint);
-      const apiBooks =  await fetchFromApi(hint);
-      // console.log(apiBooks);
-      const existingIds = new Set(localBooks.map(b => b.id));
-      const newBooks = apiBooks.filter(b => !existingIds.has(b.id));
-
-      await helpers.insertBooks(db.current, newBooks);
-      const combined = [...localBooks, ...newBooks].slice(0, 32);
-      setAllBooks(combined);
-      setBooks(combined);
-      return combined;
-    } catch (e) {
-      console.error('getBooks API fallback failed:', e);
-      return localBooks;
-    }
-  };
-
-  const getBook = async (id) => {
-    return await helpers.getBook(db.current, id);
-  };
-
-  const downloadBook = async (id, url) => {
-    const uri = await helpers.downloadBook(db.current, id, url);
-    setBooks(prev =>
-      prev.map(book =>
-        book.id === id ? { ...book, downloaded: true, downloadPath: uri } : book
-      )
-    );
-    return uri;
-  };
-
-  const getDownloadedBookContent = async (id) => {
-    const content = await helpers.getDownloadedBookContent(db.current, id);
-    return content;
-  };
-
-  const toggleBookmark = async (bookId, charIndex) => {
-    await helpers.toggleBookmark(db.current, bookId, charIndex);
-  };
-
-  useEffect(() => {
-    const setup = async () => {
-      try {
-        const newdb = await SQLite.openDatabaseAsync('books.db');
-        db.current = newdb;
-  
-        await initDatabase(db.current);
-  
-        // 1. Check if database is empty
-        const existingBooks = await helpers.getBooks(db.current, null);
-        if (existingBooks.length === 0) {
-          // 2. Prepopulate if empty
-          await prepopulateDatabase(db.current);
-        }
-  
-        // 3. Now run your normal fetch logic
-        const fetchedBooks = await helpers.getBooks(db.current, null);
-  
-        if (fetchedBooks.length === 0) {
-          const newBooks = await fetchBooks(null);
-          await helpers.insertBooks(db.current, newBooks);
-          setAllBooks(newBooks);
-        } else {
-          setAllBooks(fetchedBooks);
-        }
-      } catch (e) {
-        console.error("Setup failed:", e);
-      }
+    const fetchBooks = async (hint) => {
+        const results = await fetchFromApi(hint);
+        setBooks(results);
+        return results;
     };
-  
-    setup();
-  }, []);
 
-  return (
-    <BooksContext.Provider
-      value={{
-        books, 
-        allBooks,
-        fetchBooks,
-        setBookInLibrary,
-        getBooks,
-        getBook,
-        downloadBook,
-        getDownloadedBookContent,
-        toggleBookmark,
-      }}
-    >
-      {children}
-    </BooksContext.Provider>
-  );
+    const setBookInLibrary = async (id, inLibrary) => {
+        await helpers.setBookInLibrary(db.current, id, inLibrary);
+        setBooks((prev) =>
+            prev.map((book) => (book.id === id ? { ...book, inLibrary } : book))
+        );
+        setAllBooks((prev) =>
+            prev.map((book) => (book.id === id ? { ...book, inLibrary } : book))
+        );
+    };
+
+    // getBooks tries local DB first, then supplements from API if <32 results
+    const getBooks = async (hint) => {
+        // console.log("in getBooks");
+        const localBooks = await helpers.getBooks(db.current, hint);
+        // console.log("searched database: ", localBooks);
+
+        const needed = 32 - localBooks.length;
+        // console.log("needed: ", needed);
+        if (needed <= 0) {
+            return localBooks.slice(0, 32);
+        }
+
+        try {
+            // console.log("fetching from api with hint: ", hint);
+            const apiBooks = await fetchFromApi(hint);
+            // console.log(apiBooks);
+            const existingIds = new Set(localBooks.map((b) => b.id));
+            const newBooks = apiBooks.filter((b) => !existingIds.has(b.id));
+
+            await helpers.insertBooks(db.current, newBooks);
+            const combined = [...localBooks, ...newBooks].slice(0, 32);
+            setAllBooks(combined);
+            setBooks(combined);
+            return combined;
+        } catch (e) {
+            console.error("getBooks API fallback failed:", e);
+            return localBooks;
+        }
+    };
+
+    const getBook = async (id) => {
+        return await helpers.getBook(db.current, id);
+    };
+
+    const downloadBook = async (id, url) => {
+        const uri = await helpers.downloadBook(db.current, id, url);
+        setBooks((prev) =>
+            prev.map((book) =>
+                book.id === id
+                    ? { ...book, downloaded: true, downloadPath: uri }
+                    : book
+            )
+        );
+        return uri;
+    };
+
+    const getDownloadedBookContent = async (id) => {
+        const content = await helpers.getDownloadedBookContent(db.current, id);
+        return content;
+    };
+
+    const toggleBookmark = async (bookId, charIndex) => {
+        await helpers.toggleBookmark(db.current, bookId, charIndex);
+    };
+
+    useEffect(() => {
+        const setup = async () => {
+            try {
+                const newdb = await SQLite.openDatabaseAsync("books.db");
+                db.current = newdb;
+
+                await initDatabase(db.current);
+
+                // 1. Check if database is empty
+                const existingBooks = await helpers.getBooks(db.current, null);
+                if (existingBooks.length === 0) {
+                    // 2. Prepopulate if empty
+                    await prepopulateDatabase(db.current);
+                }
+
+                // 3. Now run your normal fetch logic
+                const fetchedBooks = await helpers.getBooks(db.current, null);
+
+                if (fetchedBooks.length === 0) {
+                    const newBooks = await fetchBooks(null);
+                    await helpers.insertBooks(db.current, newBooks);
+                    setAllBooks(newBooks);
+                } else {
+                    setAllBooks(fetchedBooks);
+                }
+            } catch (e) {
+                console.error("Setup failed:", e);
+            }
+        };
+
+        setup();
+    }, []);
+
+    return (
+        <BooksContext.Provider
+            value={{
+                books,
+                allBooks,
+                fetchBooks,
+                setBookInLibrary,
+                getBooks,
+                getBook,
+                downloadBook,
+                getDownloadedBookContent,
+                toggleBookmark,
+            }}
+        >
+            {children}
+        </BooksContext.Provider>
+    );
 }
