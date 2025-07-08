@@ -1,4 +1,5 @@
 import React from "react";
+import FastImage from 'expo-fast-image';
 
 // Get the correct download URL - prioritize HTML over TXT
 function getDownloadUrl(formats) {
@@ -53,14 +54,16 @@ export async function fetchBooks(hint) {
 
         // console.log(results);
 
-        return results.map((book) => {
+        const books = results.map((book) => {
             const downloadUrl = getDownloadUrl(book.formats);
 
             return {
                 id: book.id,
                 title: book.title || null,
                 author: book.authors?.[0]?.name || null,
-                cover: book.formats?.["image/jpeg"] || null,
+                cover: book.formats?.["image/jpeg"]
+                    ? `https://images.weserv.nl/?url=${encodeURIComponent(book.formats["image/jpeg"].replace(/^https?:\/\//, ""))}&w=100&h=150`
+                    : null,
                 publishDate: null,
                 summary:
                     Array.isArray(book.summaries) && book.summaries.length > 0
@@ -75,6 +78,13 @@ export async function fetchBooks(hint) {
                 downloadUrl,
             };
         });
+
+        // Centralized preloading
+        FastImage.preload(
+            books.filter(book => !!book.cover).map(book => ({ uri: book.cover }))
+        );
+
+        return books;
     } catch (error) {
         console.error("Failed to fetch books:", error);
         return [];
@@ -88,13 +98,15 @@ export async function fetchBooksFromPage(page = 1) {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const { results } = await response.json();
         // Map results as in your fetchBooks
-        return results.map((book) => {
+        const books = results.map((book) => {
             const downloadUrl = getDownloadUrl(book.formats);
             return {
                 id: book.id,
                 title: book.title || null,
                 author: book.authors?.[0]?.name || null,
-                cover: book.formats?.["image/jpeg"] || null,
+                cover: book.formats?.["image/jpeg"]
+                    ? `https://images.weserv.nl/?url=${encodeURIComponent(book.formats["image/jpeg"].replace(/^https?:\/\//, ""))}&w=100&h=150`
+                    : null,
                 publishDate: null,
                 summary:
                     Array.isArray(book.summaries) && book.summaries.length > 0
@@ -109,6 +121,13 @@ export async function fetchBooksFromPage(page = 1) {
                 downloadUrl,
             };
         });
+
+        // Centralized preloading
+        FastImage.preload(
+            books.filter(book => !!book.cover).map(book => ({ uri: book.cover }))
+        );
+
+        return books;
     } catch (error) {
         console.error("Failed to fetch books:", error);
         return [];

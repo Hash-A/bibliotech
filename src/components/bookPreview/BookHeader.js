@@ -1,11 +1,16 @@
 import React from 'react';
 import { View, StyleSheet, Image } from 'react-native';
 import { Text } from 'react-native-paper';
+import FastImage from 'expo-fast-image';
 
 export default function BookHeader({ book }) {
   return (
     <View style={styles.header}>
-      <Image source={{ uri: book.cover }} style={styles.cover} />
+      <FastImage
+        source={{ uri: book.cover }}
+        style={styles.cover}
+        resizeMode="cover"
+      />
       <View style={styles.basicInfo}>
         <Text style={styles.title}>{book.title}</Text>
         <Text style={styles.author}>by {book.author}</Text>

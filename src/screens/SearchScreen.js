@@ -13,6 +13,7 @@ import { BooksContext } from "../context/BooksContext";
 import SearchBar from "../components/search/SearchBar";
 import StandardBookCard from "../components/bookCards/StandardBookCard";
 import * as helpers from "../db/helpers"; // if not already imported
+import FastImage from 'expo-fast-image';
 
 export default function SearchScreen() {
     const [query, setQuery] = useState("");
