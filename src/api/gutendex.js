@@ -4,42 +4,39 @@ import React from "react";
 function getDownloadUrl(formats) {
     if (!formats || typeof formats !== "object") return null;
 
-    // Priority order: HTML with UTF-8, HTML, then TXT
-    const priorities = [
+    const normalizedFormats = {};
+    for (const [key, value] of Object.entries(formats)) {
+        if (typeof value === "string") {
+            normalizedFormats[key.toLowerCase()] = value;
+        }
+    }
+
+    // Preferred MIME types in priority order
+    const preferredMimeTypes = [
         "text/html; charset=utf-8",
         "text/html",
         "text/plain; charset=utf-8",
         "text/plain",
     ];
 
-    for (const mimeType of priorities) {
-        if (formats[mimeType]) {
-            return formats[mimeType];
+    // First: try preferred formats
+    for (const mime of preferredMimeTypes) {
+        if (normalizedFormats[mime]) {
+            return normalizedFormats[mime];
         }
     }
 
-    // Fallback: look for any HTML or TXT file in the URLs
-    for (const [key, url] of Object.entries(formats)) {
-        if (typeof url === "string") {
-            if (
-                url.toLowerCase().includes(".html") ||
-                url.toLowerCase().includes(".htm")
-            ) {
-                return url;
-            }
-        }
-    }
-
-    for (const [key, url] of Object.entries(formats)) {
-        if (typeof url === "string") {
-            if (url.toLowerCase().includes(".txt")) {
-                return url;
-            }
+    // Fallback: look for any .html, .htm, or .txt file
+    for (const url of Object.values(normalizedFormats)) {
+        const lowerUrl = url.toLowerCase();
+        if (lowerUrl.includes(".html") || lowerUrl.includes(".htm") || lowerUrl.includes(".txt")) {
+            return url;
         }
     }
 
     return null;
 }
+
 
 export async function fetchBooks(hint) {
     const baseUrl = "https://gutendex.com/books/";
