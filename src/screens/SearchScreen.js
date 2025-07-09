@@ -61,8 +61,8 @@ export default function SearchScreen() {
         setQuery(title);
     };
 
-    const handleBookPress = (bookId) => {
-        navigation.navigate("BookPreview", { bookId });
+    const handleBookPress = (book) => {
+        navigation.navigate("BookPreview", { book });
     };
 
     return (
@@ -78,7 +78,7 @@ export default function SearchScreen() {
                         <StandardBookCard
                             key={book.id}
                             book={book}
-                            onPress={() => handleBookPress(book.id)}
+                            onPress={() => handleBookPress(book)}
                         />
                     ))}
                 </ScrollView>
@@ -94,7 +94,7 @@ export default function SearchScreen() {
                             <StandardBookCard
                                 key={book.id}
                                 book={book}
-                                onPress={handleBookPress}
+                                onPress={() => handleBookPress(book)}
                             />
                         ))
                     ) : (

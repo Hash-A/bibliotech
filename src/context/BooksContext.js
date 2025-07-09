@@ -106,53 +106,57 @@ import { prepopulateDatabase } from "../db/prepopulate";
 export const BooksContext = createContext();
 
 export function BooksProvider({ children }) {
-    const [books, setBooks] = useState([]);
     const [allBooks, setAllBooks] = useState([]);
     const db = useRef(null);
 
-    const fetchBooks = async (hint) => {
-        const results = await fetchFromApi(hint);
-        setBooks(results);
-        return results;
-    };
-
     const setBookInLibrary = async (id, inLibrary) => {
-        await helpers.setBookInLibrary(db.current, id, inLibrary);
-        setBooks((prev) =>
-            prev.map((book) => (book.id === id ? { ...book, inLibrary } : book))
-        );
-        setAllBooks((prev) =>
-            prev.map((book) => (book.id === id ? { ...book, inLibrary } : book))
-        );
+        try {
+            await helpers.setBookInLibrary(db.current, id, inLibrary);
+            // Update the book's status in our single source of truth
+            setAllBooks((prev) =>
+                prev.map((book) =>
+                    book.id === id ? { ...book, inLibrary: inLibrary ? 1 : 0 } : book
+                )
+            );
+        } catch (error) {
+            console.error("Failed to update book in library:", error);
+        }
     };
 
     // getBooks tries local DB first, then supplements from API if <32 results
     const getBooks = async (hint) => {
-        // console.log("in getBooks");
         const localBooks = await helpers.getBooks(db.current, hint);
-        // console.log("searched database: ", localBooks);
 
         const needed = 32 - localBooks.length;
-        // console.log("needed: ", needed);
         if (needed <= 0) {
-            return localBooks.slice(0, 32);
+            return localBooks.slice(0, 32); // Return only local results if we have enough
         }
 
         try {
-            // console.log("fetching from api with hint: ", hint);
             const apiBooks = await fetchFromApi(hint);
-            // console.log(apiBooks);
-            const existingIds = new Set(localBooks.map((b) => b.id));
-            const newBooks = apiBooks.filter((b) => !existingIds.has(b.id));
+            
+            // Find books from the API that we don't already have
+            const allBookIds = new Set(allBooks.map((b) => b.id));
+            const newBooksToInsert = apiBooks.filter((b) => !allBookIds.has(b.id));
 
-            await helpers.insertBooks(db.current, newBooks);
-            const combined = [...localBooks, ...newBooks].slice(0, 32);
-            setAllBooks(combined);
-            setBooks(combined);
-            return combined;
+            if (newBooksToInsert.length > 0) {
+                await helpers.insertBooks(db.current, newBooksToInsert);
+                // Add the new books to our global state
+                setAllBooks((prevAllBooks) => [...prevAllBooks, ...newBooksToInsert]);
+            }
+
+            // Combine local and API results for the search results page
+            const localResultIds = new Set(localBooks.map((b) => b.id));
+            const combinedResults = [
+                ...localBooks,
+                ...apiBooks.filter((b) => !localResultIds.has(b.id)),
+            ].slice(0, 32);
+
+            return combinedResults;
+
         } catch (e) {
             console.error("getBooks API fallback failed:", e);
-            return localBooks;
+            return localBooks; // Fallback to local results on API error
         }
     };
 
@@ -162,7 +166,7 @@ export function BooksProvider({ children }) {
 
     const downloadBook = async (id, url) => {
         const uri = await helpers.downloadBook(db.current, id, url);
-        setBooks((prev) =>
+        setAllBooks((prev) =>
             prev.map((book) =>
                 book.id === id
                     ? { ...book, downloaded: true, downloadPath: uri }
@@ -200,7 +204,7 @@ export function BooksProvider({ children }) {
                 const fetchedBooks = await helpers.getBooks(db.current, null);
 
                 if (fetchedBooks.length === 0) {
-                    const newBooks = await fetchBooks(null);
+                    const newBooks = await fetchFromApi(null);
                     await helpers.insertBooks(db.current, newBooks);
                     setAllBooks(newBooks);
                 } else {
@@ -217,9 +221,7 @@ export function BooksProvider({ children }) {
     return (
         <BooksContext.Provider
             value={{
-                books,
                 allBooks,
-                fetchBooks,
                 setBookInLibrary,
                 getBooks,
                 getBook,

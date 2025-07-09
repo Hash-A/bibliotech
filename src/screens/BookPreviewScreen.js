@@ -9,19 +9,18 @@ import BookHeader from '../components/bookPreview/BookHeader'; // Add this impor
 import BookDetails from '../components/bookPreview/BookDetails'; // Add this import
 
 export default function BookPreviewScreen({ route, navigation }) {
-  const { bookId } = route.params || {};
+  const { book: initialBook } = route.params || {};
   const { allBooks, setBookInLibrary } = useContext(BooksContext);
-  const books = allBooks;
-  
-  // Get the fresh book data from context instead of using getBookById
-  const book = books.find(book => book.id === bookId);
+
+  // Get the fresh book data from context instead of using route.params
+  const book = allBooks.find(b => b.id === initialBook.id) || initialBook;
 
   const handleAddToLibrary = () => {
-    setBookInLibrary(bookId, !Boolean(book.inLibrary));
+    setBookInLibrary(book.id, !Boolean(book.inLibrary));
   };
 
   const handleReadBook = () => {
-    navigation.navigate('Reader', { bookId });
+    navigation.navigate('Reader', { book });
   };
 
   if (!book) {

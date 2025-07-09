@@ -5,15 +5,17 @@ import { BooksContext } from "../context/BooksContext";
 import { getBookById } from "../data/books";
 
 export default function ReaderScreen({ route }) {
-    const { bookId } = route.params || {};
+    const { book } = route.params || {};
     const { allBooks, downloadBook, getDownloadedBookContent } = useContext(BooksContext);
     const { width } = useWindowDimensions();
     const webviewRef = useRef(null);
 
+    const bookId = book ? book.id : null;
+
     const [htmlContent, setHtmlContent] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
-    const book = getBookById(allBooks, bookId);
+    // const book = getBookById(allBooks, bookId);
 
     useEffect(() => {
         const loadContent = async () => {
@@ -23,15 +25,21 @@ export default function ReaderScreen({ route }) {
             try {
                 let content;
                 // Check if the book is downloaded
+                console.log("downloading");
                 if (book.downloaded !== 1) {
                     await downloadBook(bookId, book.downloadUrl);
                 }
+                console.log("downloaded");
+
                 // Fetch the downloaded content
                 content = await getDownloadedBookContent(bookId);
+                console.log("fetching downloaded");
+
                 
                 // If content exists, use it. Otherwise, fallback to the URL.
                 if (content) {
                     setHtmlContent(content);
+                    console.log("success");
                 } else if (book.downloadUrl) {
                     // This is a fallback in case offline content fails
                     // In a real scenario, you might want better error handling

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -8,11 +8,17 @@ import StandardBookCard from '../components/bookCards/StandardBookCard';
 export default function MyLibraryScreen() {
   const navigation = useNavigation();
   const { allBooks } = useContext(BooksContext);
+  const [myLibraryBooks, setMyLibraryBooks] = useState([]);
 
   const books = allBooks;
 
+  // let myLibraryBooks = [];
+  useEffect(() => {
+    console.log("entered mylibrary");
+    setMyLibraryBooks(allBooks.filter(book => book.inLibrary));
+  }, [allBooks])
+
   // Only show books that are in the user's library
-  const myLibraryBooks = books.filter(book => book.inLibrary);
 
   return (
     <ScrollView style={styles.container}>
@@ -24,7 +30,7 @@ export default function MyLibraryScreen() {
           <StandardBookCard
             key={book.id}
             book={book}
-            onPress={() => navigation.navigate('BookPreview', { bookId: book.id })}
+            onPress={() => navigation.navigate('BookPreview', { book: book })}
           />
         ))
       )}
