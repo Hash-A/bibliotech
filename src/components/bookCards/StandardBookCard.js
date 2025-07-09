@@ -2,7 +2,6 @@ import React from "react";
 import { View, Image, StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
 import { Text } from "react-native";
-import FastImage from 'expo-fast-image';
 export default function StandardBookCard({ book, onPress }) {
     return (
         <Card
@@ -13,11 +12,15 @@ export default function StandardBookCard({ book, onPress }) {
             <View style={styles.overflowWrapper}>
                 <Card.Content>
                     <View style={styles.bookContent}>
-                        <FastImage
-                            source={{ uri: book.cover }}
-                            style={styles.bookCover}
-                            resizeMode="cover"
-                        />
+                        {book.cover ? (
+                            <Image
+                                source={{ uri: book.cover }}
+                                style={styles.bookCover}
+                                resizeMode="cover"
+                            />
+                        ) : (
+                            <View style={styles.bookCover} />
+                        )}
                         <View style={styles.bookInfo}>
                             <Text style={styles.title}>
                                 {book.title || "No Title"}

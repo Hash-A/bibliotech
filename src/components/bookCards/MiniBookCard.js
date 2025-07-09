@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Text } from 'react-native-paper';
-import FastImage from 'expo-fast-image';
+import { View, Image } from 'react-native';
 
 export default function MiniBookCard({ book, onPress, style, coverStyle, titleStyle }) {
   if (!book) return null;
@@ -10,11 +10,15 @@ export default function MiniBookCard({ book, onPress, style, coverStyle, titleSt
       style={style}
       onPress={onPress}
     >
-      <FastImage
-        source={{ uri: book.cover }}
-        style={coverStyle}
-        resizeMode="cover"
-      />
+      {book.cover ? (
+        <Image
+          source={{ uri: book.cover }}
+          style={coverStyle}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={[coverStyle, { backgroundColor: '#eee' }]} />
+      )}
       <Card.Content>
         <Text style={titleStyle}>{book.title}</Text>
       </Card.Content>

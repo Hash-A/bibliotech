@@ -1,5 +1,5 @@
 import React from "react";
-import FastImage from 'expo-fast-image';
+import { Image } from "react-native";
 
 // Get the correct download URL - prioritize HTML over TXT
 function getDownloadUrl(formats) {
@@ -80,9 +80,9 @@ export async function fetchBooks(hint) {
         });
 
         // Centralized preloading
-        FastImage.preload(
-            books.filter(book => !!book.cover).map(book => ({ uri: book.cover }))
-        );
+        books
+            .filter((book) => !!book.cover)
+            .forEach((book) => Image.prefetch(book.cover));
 
         return books;
     } catch (error) {
@@ -123,9 +123,9 @@ export async function fetchBooksFromPage(page = 1) {
         });
 
         // Centralized preloading
-        FastImage.preload(
-            books.filter(book => !!book.cover).map(book => ({ uri: book.cover }))
-        );
+        books
+            .filter((book) => !!book.cover)
+            .forEach((book) => Image.prefetch(book.cover));
 
         return books;
     } catch (error) {
