@@ -12,7 +12,6 @@ import { useNavigation } from "@react-navigation/native";
 import { BooksContext } from "../context/BooksContext";
 import SearchBar from "../components/search/SearchBar";
 import StandardBookCard from "../components/bookCards/StandardBookCard";
-import * as helpers from "../db/helpers";
 import { theme } from "../styles/theme";
 
 export default function SearchScreen() {
@@ -20,9 +19,14 @@ export default function SearchScreen() {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigation = useNavigation();
-    const { allBooks, getBooks, db } = useContext(BooksContext);
+    const { allBooks, getBooks } = useContext(BooksContext);
 
-    const popularBooks = allBooks.slice(0, 96);
+    // Get popular books from allBooks - books with highest ratings or featured status
+    const popularBooks = React.useMemo(() => {
+        return allBooks
+            .slice(0, 96)
+            .filter(book => !query.trim()); // Only show popular books when no search query
+    }, [allBooks, query]);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -41,33 +45,28 @@ export default function SearchScreen() {
                     console.error("Search failed:", err);
                     setLoading(false);
                 });
-        }, 100);
+        }, 300); // Increased debounce time slightly
 
         return () => clearTimeout(timeout);
     }, [query]);
-
-    useEffect(() => {
-        const fetchPopular = async () => {
-            if (db?.current) {
-                const books = await helpers.getPopularBooks(db.current, 92);
-                setPopularBooks(books);
-            }
-        };
-        fetchPopular();
-    }, [db]);
-
-    const handlePopularPress = (title) => {
-        setQuery(title);
-    };
 
     const handleBookPress = (book) => {
         navigation.navigate("BookPreview", { book });
     };
 
+    const handleClearSearch = () => {
+        setQuery("");
+        setResults([]);
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.searchBarContainer}>
-                <SearchBar onChangeText={setQuery} value={query} />
+                <SearchBar 
+                    onChangeText={setQuery} 
+                    value={query}
+                    onClear={handleClearSearch}
+                />
             </View>
 
             {query.trim() === "" ? (

@@ -76,7 +76,10 @@ export async function fetchBooks(hint) {
                         ? book.subjects.join(" ")
                         : null,
                 downloadUrl,
-                isRecommendation: false
+                isRecommendation: false,
+                inLibrary: 0,  // Initialize as not in library
+                downloaded: false,
+                downloadPath: null
             };
         });
 
@@ -120,7 +123,10 @@ export async function fetchBooksFromPage(page = 1) {
                         ? book.subjects.join(" ")
                         : null,
                 downloadUrl,
-                isRecommendation: false
+                isRecommendation: false,
+                inLibrary: 0,  // Initialize as not in library
+                downloaded: false,
+                downloadPath: null
             };
         });
 

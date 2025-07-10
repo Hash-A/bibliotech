@@ -4,17 +4,18 @@ import { Button } from 'react-native-paper';
 import { theme } from '../../styles/theme';
 
 export default function AddToLibraryButton({ onPress, inLibrary, style }) {
+  const isInLibrary = inLibrary > 0;
+  
   return (
     <Button
-      mode={inLibrary ? "outlined" : "contained"}
-      icon={inLibrary ? "check" : "plus"}
+      mode={isInLibrary ? "outlined" : "contained"}
+      icon={isInLibrary ? "check" : "plus"}
       style={[styles.button, style]}
       onPress={onPress}
-      disabled={inLibrary}
-      buttonColor={inLibrary ? theme.colors.surface : theme.colors.accent}
-      textColor={inLibrary ? theme.colors.text.secondary : theme.colors.surface}
+      buttonColor={isInLibrary ? theme.colors.surface : theme.colors.accent}
+      textColor={isInLibrary ? theme.colors.text.secondary : theme.colors.surface}
     >
-      {inLibrary ? "Added to Library" : "Add to Library"}
+      {isInLibrary ? "Added to Library" : "Add to Library"}
     </Button>
   );
 }

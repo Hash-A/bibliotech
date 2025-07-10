@@ -48,7 +48,7 @@ export default function DashboardScreen() {
                     book={featuredBook}
                     onPress={() =>
                         navigation.navigate("BookPreview", {
-                            bookId: featuredBook.id,
+                            book: featuredBook
                         })
                     }
                     style={styles.featuredCard}

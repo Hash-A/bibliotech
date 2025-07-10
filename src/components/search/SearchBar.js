@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import { theme } from '../../styles/theme';
 
-export default function SearchBar({ value, onChangeText }) {
+export default function SearchBar({ value, onChangeText, onClear }) {
   return (
     <Searchbar
       placeholder="Search books..."
@@ -13,6 +13,8 @@ export default function SearchBar({ value, onChangeText }) {
       inputStyle={styles.input}
       iconColor={theme.colors.text.secondary}
       placeholderTextColor={theme.colors.text.muted}
+      onIconPress={value ? onClear : undefined}
+      clearIcon={value ? "close" : "magnify"}
     />
   );
 }

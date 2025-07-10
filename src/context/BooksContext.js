@@ -8,14 +8,33 @@ import { prepopulateDatabase } from "../db/prepopulate";
 export const BooksContext = createContext();
 
 export function BooksProvider({ children }) {
-    const [books, setBooks] = useState([]);
+    const [searchResults, setSearchResults] = useState([]);
     const [allBooks, setAllBooks] = useState([]);
     const db = useRef(null);
 
+    const getLibraryStatus = async (bookId) => {
+        try {
+            const book = await helpers.getBook(db.current, bookId);
+            return book ? book.inLibrary : 0;
+        } catch (error) {
+            console.error('Error getting library status:', error);
+            return 0;
+        }
+    };
+
     const fetchBooks = async (hint) => {
         const results = await fetchFromApi(hint);
-        setBooks(results);
-        return results;
+        
+        // Get library status for each book
+        const booksWithStatus = await Promise.all(
+            results.map(async (book) => ({
+                ...book,
+                inLibrary: await getLibraryStatus(book.id)
+            }))
+        );
+        
+        setSearchResults(booksWithStatus);
+        return booksWithStatus;
     };
 
     const setBookInLibrary = async (id, inLibrary) => { 
@@ -26,48 +45,57 @@ export function BooksProvider({ children }) {
         if (inLibrary === 2) inLibrary = getTimeSeconds();
         
         await helpers.setBookInLibrary(db.current, id, inLibrary);
-        setBooks((prev) =>
-            prev.map((book) => (book.id === id ? 
-                ((bk,inLib)=>{
-                    bk.inLibrary=inLib; 
-                    return bk;})(book, inLibrary) 
-                : book))
-        );
+        
+        // Update allBooks state
         setAllBooks((prev) =>
-            prev.map((book) => (book.id === id ? 
-                ((bk,inLib)=>{
-                    bk.inLibrary=inLib; 
-                    return bk;})(book, inLibrary) 
-                : book))
+            prev.map((book) => 
+                book.id === id ? { ...book, inLibrary } : book
+            )
+        );
+        
+        // Also update searchResults if the book is in there
+        setSearchResults((prev) =>
+            prev.map((book) => 
+                book.id === id ? { ...book, inLibrary } : book
+            )
         );
     };
 
     // getBooks tries local DB first, then supplements from API if <32 results
     const getBooks = async (hint) => {
-        // console.log("in getBooks");
         const localBooks = await helpers.getBooks(db.current, hint);
-        // console.log("searched database: ", localBooks);
-
         const needed = 32 - localBooks.length;
-        // console.log("needed: ", needed);
+
         if (needed <= 0) {
+            setSearchResults(localBooks.slice(0, 32));
             return localBooks.slice(0, 32);
         }
 
         try {
-            // console.log("fetching from api with hint: ", hint);
             const apiBooks = await fetchFromApi(hint);
-            // console.log(apiBooks);
-            const existingIds = new Set(localBooks.map((b) => b.id));
-            const newBooks = apiBooks.filter((b) => !existingIds.has(b.id));
+            
+            // Get current library status for all API books
+            const apiBookStatuses = await Promise.all(
+                apiBooks.map(async (book) => ({
+                    ...book,
+                    inLibrary: await getLibraryStatus(book.id)
+                }))
+            );
 
+            const existingIds = new Set(localBooks.map((b) => b.id));
+            const newBooks = apiBookStatuses.filter((b) => !existingIds.has(b.id));
+
+            // Insert new books into the database
             await helpers.insertBooks(db.current, newBooks);
+
+            // Combine local and new books
             const combined = [...localBooks, ...newBooks].slice(0, 32);
-            setAllBooks(combined);
-            setBooks(combined);
+            
+            setSearchResults(combined);
             return combined;
         } catch (e) {
             console.error("getBooks API fallback failed:", e);
+            setSearchResults(localBooks);
             return localBooks;
         }
     };
@@ -78,28 +106,31 @@ export function BooksProvider({ children }) {
 
     const downloadBook = async (id, url) => {
         try {
-            const book = allBooks.find(b => b.id === id);
+            // Check both allBooks and searchResults for the book
+            const book = allBooks.find(b => b.id === id) || 
+                        searchResults.find(b => b.id === id);
+                        
             if (!book || book.downloaded) {
-                return book?.downloadPath; // Return existing path if already downloaded
+                return book?.downloadPath;
             }
 
             const result = await helpers.downloadBook(db.current, id, url);
             
-            // Update both books and allBooks state with downloaded status
-            const updateBooks = (prevBooks) =>
+            // Update both states with downloaded status
+            const updateBookState = (prevBooks) =>
                 prevBooks.map((book) =>
                     book.id === id
                         ? { ...book, downloaded: true, downloadPath: result }
                         : book
                 );
                 
-            setBooks(updateBooks);
-            setAllBooks(updateBooks);
+            setSearchResults(updateBookState);
+            setAllBooks(updateBookState);
             
             return result;
         } catch (error) {
             console.error(`Error downloading book (id: ${id}):`, error);
-            throw error; // Re-throw to handle in UI
+            throw error;
         }
     };
 
@@ -129,15 +160,12 @@ export function BooksProvider({ children }) {
                     console.log("Database empty, prepopulating...");
                     await prepopulateDatabase(db.current);
                     console.log("Database prepopulated");
-                } else {
-                    console.log(`Database already contains ${existingBooks.length} books`);
                 }
 
                 // Load books including recommendations
                 const fetchedBooks = await helpers.getBooks(db.current, null);
-                console.log("Fetched books:", fetchedBooks.length, "Recommended:", fetchedBooks.filter(b => b.isRecommendation).length);
-                
                 setAllBooks(fetchedBooks);
+                setSearchResults([]);  // Clear any initial search results
 
             } catch (e) {
                 console.error("Setup failed:", e);
@@ -150,7 +178,7 @@ export function BooksProvider({ children }) {
     return (
         <BooksContext.Provider
             value={{
-                books,
+                books: searchResults,  // Keep the name 'books' for backward compatibility
                 allBooks,
                 fetchBooks,
                 setBookInLibrary,

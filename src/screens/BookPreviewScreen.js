@@ -1,40 +1,44 @@
 import React, { useState, useContext } from 'react';
 import { View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import { Card, Text, Divider } from 'react-native-paper';
-import { getBookById } from '../data/books'; // Keep getBookById for now
-import { BooksContext } from '../context/BooksContext'; // Add context import
+import { getBookById } from '../data/books';
+import { BooksContext } from '../context/BooksContext';
 import ViewButton from '../components/common/ViewButton';
 import AddToLibraryButton from '../components/common/AddToLibraryButton';
-import BookHeader from '../components/bookPreview/BookHeader'; // Add this import
-import BookDetails from '../components/bookPreview/BookDetails'; // Add this import
+import BookHeader from '../components/bookPreview/BookHeader';
+import BookDetails from '../components/bookPreview/BookDetails';
+import { theme } from '../styles/theme';
 
 export default function BookPreviewScreen({ route, navigation }) {
-  const { book: initialBook } = route.params || {};
   const { allBooks, setBookInLibrary, downloadBook } = useContext(BooksContext);
+  
+  // Safely get the book from route params
+  const initialBook = route.params?.book;
+  if (!initialBook) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Book not found.</Text>
+      </View>
+    );
+  }
 
-  // Get the fresh book data from context instead of using route.params
+  // Get the fresh book data from context
   const book = allBooks.find(b => b.id === initialBook.id) || initialBook;
 
   const handleAddToLibrary = async () => {
-    if (!book.inLibrary) {
-      // Only download if we're adding to library (not removing)
-      try {
-        await setBookInLibrary(book.id, true);
-        // Download the book after adding to library
+    try {
+      const newStatus = book.inLibrary > 0 ? 0 : 1;
+      await setBookInLibrary(book.id, newStatus);
+      
+      if (newStatus === 1) {
         await downloadBook(book.id, book.downloadUrl);
-      } catch (error) {
-        console.error('Error adding book to library:', error);
-        // If download fails, we might want to show an error message to the user
-        Alert.alert(
-          'Download Error',
-          'Failed to download book. Please check your internet connection and try again.'
-        );
-        // Optionally revert the library status if download failed
-        await setBookInLibrary(book.id, false);
       }
-    } else {
-      // Just remove from library if that's what we're doing
-      await setBookInLibrary(book.id, false);
+    } catch (error) {
+      console.error('Error managing library status:', error);
+      Alert.alert(
+        'Error',
+        'Failed to update library status. Please try again.'
+      );
     }
   };
 
@@ -45,35 +49,23 @@ export default function BookPreviewScreen({ route, navigation }) {
     navigation.navigate('Reader', { book });
   };
 
-  if (!book) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text>Book not found.</Text>
-      </View>
-    );
-  }
-
   return (
     <ScrollView style={styles.container}>
-      {/* Book Header*/}
       <BookHeader book={book} />
       
-      <Divider style={{marginVertical: 16}} />
+      <Divider style={styles.divider} />
 
-      {/* Book Details */}
       <BookDetails book={book} />
 
-      {/* Action Buttons */}
       <View style={styles.actions}>
         <AddToLibraryButton
           onPress={handleAddToLibrary}
-          inLibrary={Boolean(book.inLibrary)}
+          inLibrary={book.inLibrary || 0}
         />
         <ViewButton
           onPress={handleReadBook}
         />
       </View>
-      
     </ScrollView>
   );
 }
@@ -81,15 +73,25 @@ export default function BookPreviewScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.md,
+  },
+  errorText: {
+    ...theme.typography.body,
+    color: theme.colors.text.muted,
+    textAlign: 'center',
+  },
+  divider: {
+    marginVertical: theme.spacing.md,
   },
   actions: {
-    padding: 16,
-    gap: 12,
+    padding: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
 });

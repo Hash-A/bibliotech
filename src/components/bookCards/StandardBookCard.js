@@ -2,6 +2,8 @@ import React from "react";
 import { View, Image, StyleSheet } from "react-native";
 import { Card } from "react-native-paper";
 import { Text } from "react-native";
+import { theme } from "../../styles/theme";
+
 export default function StandardBookCard({ book, onPress }) {
     return (
         <Card
@@ -9,7 +11,7 @@ export default function StandardBookCard({ book, onPress }) {
             style={styles.resultCard}
             onPress={() => onPress(book.id)}
         >
-            <View style={styles.overflowWrapper}>
+            <View style={styles.overflowContainer}>
                 <Card.Content>
                     <View style={styles.bookContent}>
                         {book.cover ? (
@@ -38,12 +40,12 @@ export default function StandardBookCard({ book, onPress }) {
 
 const styles = StyleSheet.create({
     resultCard: {
-        marginBottom: 12,
-        borderRadius: 8,
-        // overflow: "hidden",
+        marginBottom: theme.spacing.md,
+        borderRadius: theme.borderRadius.md,
     },
-    overflowWrapper: {
-        // Add this if needed for overflow handling
+    overflowContainer: {
+        overflow: "hidden",
+        borderRadius: theme.borderRadius.md,
     },
     bookContent: {
         flexDirection: "row",
@@ -52,21 +54,20 @@ const styles = StyleSheet.create({
     bookCover: {
         width: 60,
         height: 90,
-        borderRadius: 8,
-        marginRight: 16,
-        backgroundColor: "#eee",
+        borderRadius: theme.borderRadius.sm,
+        marginRight: theme.spacing.md,
+        backgroundColor: theme.colors.surface,
     },
     bookInfo: {
         flex: 1,
         justifyContent: "center",
     },
     title: {
-        fontSize: 16,
-        fontWeight: "bold",
-        marginBottom: 4,
+        ...theme.typography.title,
+        marginBottom: theme.spacing.xs,
     },
     author: {
-        fontSize: 14,
-        color: "#666",
+        ...theme.typography.body,
+        color: theme.colors.text.secondary,
     },
 });

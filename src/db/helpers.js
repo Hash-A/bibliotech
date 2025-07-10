@@ -19,9 +19,9 @@ export async function insertBooks(db, books) {
         for (const book of books) {
             await db.runAsync(
                 `INSERT OR IGNORE INTO books (
-          id, title, author, cover, publishDate, summary, isbn, pages, genres,
-          inLibrary, downloaded, downloadPath, downloadUrl, isRecommendation
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    id, title, author, cover, publishDate, summary, isbn, pages, genres,
+                    inLibrary, downloaded, downloadPath, downloadUrl, isRecommendation
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     book.id,
                     book.title,
@@ -32,11 +32,11 @@ export async function insertBooks(db, books) {
                     book.isbn,
                     book.pages,
                     book.genres ? JSON.stringify(book.genres) : null,
-                    book.inLibrary || 0,  // Use 0 as default instead of converting to boolean
+                    book.inLibrary || 0,  // Use 0 as default
                     book.downloaded ? 1 : 0,
                     book.downloadPath || null,
                     book.downloadUrl || null,
-                    book.isRecommendation || 0,
+                    book.isRecommendation ? 1 : 0,
                 ]
             );
         }
