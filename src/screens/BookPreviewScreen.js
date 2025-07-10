@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
 import { Card, Text, Divider } from 'react-native-paper';
 import { getBookById } from '../data/books'; // Keep getBookById for now
 import { BooksContext } from '../context/BooksContext'; // Add context import
@@ -10,16 +10,38 @@ import BookDetails from '../components/bookPreview/BookDetails'; // Add this imp
 
 export default function BookPreviewScreen({ route, navigation }) {
   const { book: initialBook } = route.params || {};
-  const { allBooks, setBookInLibrary } = useContext(BooksContext);
+  const { allBooks, setBookInLibrary, downloadBook } = useContext(BooksContext);
 
   // Get the fresh book data from context instead of using route.params
   const book = allBooks.find(b => b.id === initialBook.id) || initialBook;
 
-  const handleAddToLibrary = () => {
-    setBookInLibrary(book.id, !Boolean(book.inLibrary));
+  const handleAddToLibrary = async () => {
+    if (!book.inLibrary) {
+      // Only download if we're adding to library (not removing)
+      try {
+        await setBookInLibrary(book.id, true);
+        // Download the book after adding to library
+        await downloadBook(book.id, book.downloadUrl);
+      } catch (error) {
+        console.error('Error adding book to library:', error);
+        // If download fails, we might want to show an error message to the user
+        Alert.alert(
+          'Download Error',
+          'Failed to download book. Please check your internet connection and try again.'
+        );
+        // Optionally revert the library status if download failed
+        await setBookInLibrary(book.id, false);
+      }
+    } else {
+      // Just remove from library if that's what we're doing
+      await setBookInLibrary(book.id, false);
+    }
   };
 
   const handleReadBook = () => {
+    if (book.inLibrary !== 0) {
+      setBookInLibrary(book.id, 2);
+    }
     navigation.navigate('Reader', { book });
   };
 

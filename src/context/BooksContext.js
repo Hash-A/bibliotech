@@ -1,101 +1,3 @@
-// import React, { useState } from 'react';
-// import { books as initialBooks } from '../data/books';
-
-// // 1. Create the Context
-// export const BooksContext = React.createContext();
-
-// // 2. Create the Provider Component
-
-// async function fetchBooks(hint) {
-//   const baseUrl = 'https://gutendex.com/books/';
-//   const randomPage = Math.floor(Math.random() * 1000) + 1;
-
-//   const url = hint
-//     ? `${baseUrl}?search=${encodeURIComponent(hint)}`
-//     : `${baseUrl}?page=${randomPage}`;
-
-//   try {
-//     const response = await fetch(url);
-//     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-//     const data = await response.json();
-
-//     return data.results.map(book => ({
-//       id: book.id,
-//       title: book.title || null,
-//       author: (book.authors && book.authors[0] && book.authors[0].name) || null,
-//       cover: book.formats && book.formats['image/jpeg'] ? book.formats['image/jpeg'] : null,
-//       publishDate: null, // Not provided by Gutendex
-//       summary: null,     // Not provided by Gutendex
-//       isbn: null,        // Not provided by Gutendex
-//       pages: null,       // Not provided by Gutendex
-//       genres: book.subjects && book.subjects.length > 0 ? book.subjects : null,
-//     }));
-//   } catch (error) {
-//     console.error('Failed to fetch books:', error);
-//     return [];
-//   }
-// }
-
-// function initDatabase(db) {
-//   db.transaction(tx => {
-//     tx.executeSql(`
-//       CREATE TABLE IF NOT EXISTS books (
-//         id INTEGER PRIMARY KEY NOT NULL,
-//         title TEXT,
-//         author TEXT,
-//         cover TEXT,
-//         publishDate TEXT,
-//         summary TEXT,
-//         isbn TEXT,
-//         pages INTEGER,
-//         genres TEXT,
-//         inLibrary INTEGER DEFAULT 0,
-//         downloaded INTEGER DEFAULT 0,
-//         downloadPath TEXT
-//       );
-//     `);
-
-//     tx.executeSql(`
-//       CREATE TABLE IF NOT EXISTS bookmarks (
-//         id INTEGER PRIMARY KEY AUTOINCREMENT,
-//         book_id INTEGER NOT NULL,
-//         char_index INTEGER NOT NULL,
-//         UNIQUE(book_id, char_index)
-//       );
-//     `);
-//   });
-// }
-
-// /*
-
-// None Export (internal) methods:
-//   - fetchBooks(hint: string | null) => Book[]
-
-// Book Context Methods:
-//   - setBookInLibrary(book_id: number, inLibrary: boolean) // informs the database that the book is (or isnt) in the library
-//   - getBooks(hint: string | null) => Book[] // fetches a list of min(n, 32) books, if `hint` is provided its used as search criterion
-//   - downloadBook(book_id: number) // downloads book
-//   - getBook(book_id: number) => Book // fetches downloaded book
-//   - toggleBookmark(book_id: number, char_index: number) // toggles a bookmark at the specified index in the specified book
-// */
-// export function BooksProvider({ children }) {
-//   const [books, setBooks] = useState(initialBooks);
-
-//   const setBookInLibrary = (id, inLibrary) => {
-//     setBooks(prevBooks =>
-//       prevBooks.map(book =>
-//         book.id === id ? { ...book, inMyLibrary: inLibrary } : book
-//       )
-//     );
-//   };
-
-//   return (
-//     <BooksContext.Provider value={{ books, setBookInLibrary }}>
-//       {children}
-//     </BooksContext.Provider>
-//   );
-// }
-
 import React, { createContext, useEffect, useRef, useState } from "react";
 import * as SQLite from "expo-sqlite";
 import { initDatabase } from "../db/schema";
@@ -106,57 +8,67 @@ import { prepopulateDatabase } from "../db/prepopulate";
 export const BooksContext = createContext();
 
 export function BooksProvider({ children }) {
+    const [books, setBooks] = useState([]);
     const [allBooks, setAllBooks] = useState([]);
     const db = useRef(null);
 
-    const setBookInLibrary = async (id, inLibrary) => {
-        try {
-            await helpers.setBookInLibrary(db.current, id, inLibrary);
-            // Update the book's status in our single source of truth
-            setAllBooks((prev) =>
-                prev.map((book) =>
-                    book.id === id ? { ...book, inLibrary: inLibrary ? 1 : 0 } : book
-                )
-            );
-        } catch (error) {
-            console.error("Failed to update book in library:", error);
-        }
+    const fetchBooks = async (hint) => {
+        const results = await fetchFromApi(hint);
+        setBooks(results);
+        return results;
+    };
+
+    const setBookInLibrary = async (id, inLibrary) => { 
+        // inLibrary === 0  not in library
+        // inLibrary === 1  in library
+        // inLibrary === 2 -> getTimeSeconds() viewed
+        const getTimeSeconds = () => Math.floor(Date.now() / 1000);
+        if (inLibrary === 2) inLibrary = getTimeSeconds();
+        
+        await helpers.setBookInLibrary(db.current, id, inLibrary);
+        setBooks((prev) =>
+            prev.map((book) => (book.id === id ? 
+                ((bk,inLib)=>{
+                    bk.inLibrary=inLib; 
+                    return bk;})(book, inLibrary) 
+                : book))
+        );
+        setAllBooks((prev) =>
+            prev.map((book) => (book.id === id ? 
+                ((bk,inLib)=>{
+                    bk.inLibrary=inLib; 
+                    return bk;})(book, inLibrary) 
+                : book))
+        );
     };
 
     // getBooks tries local DB first, then supplements from API if <32 results
     const getBooks = async (hint) => {
+        // console.log("in getBooks");
         const localBooks = await helpers.getBooks(db.current, hint);
+        // console.log("searched database: ", localBooks);
 
         const needed = 32 - localBooks.length;
+        // console.log("needed: ", needed);
         if (needed <= 0) {
-            return localBooks.slice(0, 32); // Return only local results if we have enough
+            return localBooks.slice(0, 32);
         }
 
         try {
+            // console.log("fetching from api with hint: ", hint);
             const apiBooks = await fetchFromApi(hint);
-            
-            // Find books from the API that we don't already have
-            const allBookIds = new Set(allBooks.map((b) => b.id));
-            const newBooksToInsert = apiBooks.filter((b) => !allBookIds.has(b.id));
+            // console.log(apiBooks);
+            const existingIds = new Set(localBooks.map((b) => b.id));
+            const newBooks = apiBooks.filter((b) => !existingIds.has(b.id));
 
-            if (newBooksToInsert.length > 0) {
-                await helpers.insertBooks(db.current, newBooksToInsert);
-                // Add the new books to our global state
-                setAllBooks((prevAllBooks) => [...prevAllBooks, ...newBooksToInsert]);
-            }
-
-            // Combine local and API results for the search results page
-            const localResultIds = new Set(localBooks.map((b) => b.id));
-            const combinedResults = [
-                ...localBooks,
-                ...apiBooks.filter((b) => !localResultIds.has(b.id)),
-            ].slice(0, 32);
-
-            return combinedResults;
-
+            await helpers.insertBooks(db.current, newBooks);
+            const combined = [...localBooks, ...newBooks].slice(0, 32);
+            setAllBooks(combined);
+            setBooks(combined);
+            return combined;
         } catch (e) {
             console.error("getBooks API fallback failed:", e);
-            return localBooks; // Fallback to local results on API error
+            return localBooks;
         }
     };
 
@@ -165,15 +77,30 @@ export function BooksProvider({ children }) {
     };
 
     const downloadBook = async (id, url) => {
-        const uri = await helpers.downloadBook(db.current, id, url);
-        setAllBooks((prev) =>
-            prev.map((book) =>
-                book.id === id
-                    ? { ...book, downloaded: true, downloadPath: uri }
-                    : book
-            )
-        );
-        return uri;
+        try {
+            const book = allBooks.find(b => b.id === id);
+            if (!book || book.downloaded) {
+                return book?.downloadPath; // Return existing path if already downloaded
+            }
+
+            const result = await helpers.downloadBook(db.current, id, url);
+            
+            // Update both books and allBooks state with downloaded status
+            const updateBooks = (prevBooks) =>
+                prevBooks.map((book) =>
+                    book.id === id
+                        ? { ...book, downloaded: true, downloadPath: result }
+                        : book
+                );
+                
+            setBooks(updateBooks);
+            setAllBooks(updateBooks);
+            
+            return result;
+        } catch (error) {
+            console.error(`Error downloading book (id: ${id}):`, error);
+            throw error; // Re-throw to handle in UI
+        }
     };
 
     const getDownloadedBookContent = async (id) => {
@@ -204,7 +131,7 @@ export function BooksProvider({ children }) {
                 const fetchedBooks = await helpers.getBooks(db.current, null);
 
                 if (fetchedBooks.length === 0) {
-                    const newBooks = await fetchFromApi(null);
+                    const newBooks = await fetchBooks(null);
                     await helpers.insertBooks(db.current, newBooks);
                     setAllBooks(newBooks);
                 } else {
@@ -221,7 +148,9 @@ export function BooksProvider({ children }) {
     return (
         <BooksContext.Provider
             value={{
+                books,
                 allBooks,
+                fetchBooks,
                 setBookInLibrary,
                 getBooks,
                 getBook,

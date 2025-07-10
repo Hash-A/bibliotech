@@ -32,5 +32,5 @@ export async function initDatabase(db) {
       UNIQUE(book_id, char_index)
     );
   `); 
-  }
+}
   

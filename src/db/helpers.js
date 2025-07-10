@@ -103,23 +103,43 @@ export async function setBookInLibrary(db, id, inLibrary) {
 // Download book and update DB
 export async function downloadBook(db, bookId, url) {
     try {
+        // First check if book already exists
+        const existingBook = await db.getFirstAsync(
+            "SELECT downloadPath FROM books WHERE id = ? AND downloaded = 1",
+            bookId
+        );
+        
+        if (existingBook?.downloadPath) {
+            // Check if file actually exists
+            const fileInfo = await FileSystem.getInfoAsync(existingBook.downloadPath);
+            if (fileInfo.exists) {
+                return existingBook.downloadPath;
+            }
+        }
+
+        // Create books directory if it doesn't exist
         const dir = `${FileSystem.documentDirectory}books/`;
         await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
 
-        // Force extension to .html regardless of URL's actual extension
+        // Download the book
         const fileUri = `${dir}book_${bookId}.html`;
-        const res = await FileSystem.downloadAsync(url, fileUri);
+        const downloadResult = await FileSystem.downloadAsync(url, fileUri);
 
+        if (downloadResult.status !== 200) {
+            throw new Error(`Download failed with status ${downloadResult.status}`);
+        }
+
+        // Update the database
         await db.runAsync(
             "UPDATE books SET downloaded = 1, downloadPath = ? WHERE id = ?",
-            res.uri,
+            downloadResult.uri,
             bookId
         );
 
-        return res.uri;
+        return downloadResult.uri;
     } catch (error) {
         console.error(`Error in downloadBook (bookId: ${bookId}):`, error);
-        return null;
+        throw error; // Re-throw to handle in UI
     }
 }
 

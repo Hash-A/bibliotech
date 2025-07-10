@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { Text, Card, Button, Divider } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
@@ -12,6 +12,7 @@ import SettingsButton from "../components/common/SettingsButton";
 export default function DashboardScreen() {
     const navigation = useNavigation();
     const { allBooks } = useContext(BooksContext); // should not be a constant array, should be fetched from some DB
+    const [continueReadingBooks, setContinueReading] = useState([]);
     const books = allBooks;
 
     // const { booksFetcher } = useContext(BooksContext) ; // booksFetcher: () => book[] is a function that sends api request (might need backend if i am pulling from multiple websites)
@@ -22,9 +23,27 @@ export default function DashboardScreen() {
     const featuredBook = ourPicks[0]; // if i have multiple books to possibly recommend ourPicks[number.rand()];
 
     // Get books for "Continue Reading"
-    const continueReadingBooks = books.filter(
-        (book) => book.inLibrary && book.lastReadPage > 0
-    );
+    useEffect(() => {
+        if (!allBooks || allBooks.length === 0) return;
+    
+        // Clone and sort books from largest to smallest by inLibrary
+        const sorted = [...allBooks].sort((a, b) => Number(b.inLibrary) - Number(a.inLibrary));
+    
+        // Take up to 4 books where inLibrary !== '1'
+        const filteredTop = [];
+        for (const book of sorted) {
+            if (book.inLibrary <= 1) break;
+            filteredTop.push(book);
+            if (filteredTop.length === 4) break;
+        }
+    
+        // Do something with filteredTop
+        // console.log("Top books:", filteredTop);
+        setContinueReading(filteredTop);
+    
+    }, [allBooks]);
+
+    
 
     const handleSettingsPress = () => {
         // console.log('Navigate to Settings');
@@ -58,7 +77,7 @@ export default function DashboardScreen() {
                 <ContinueReadingSection
                     books={continueReadingBooks}
                     onBookPress={(book) =>
-                        navigation.navigate("BookPreview", { bookId: book.id })
+                        navigation.navigate("BookPreview", { book: book })
                     }
                 />
 
