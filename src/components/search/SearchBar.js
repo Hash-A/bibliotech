@@ -1,26 +1,31 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Searchbar } from 'react-native-paper';
+import { theme } from '../../styles/theme';
 
-export default function SearchBar({ 
-  placeholder = "Search by title or author",
-  onChangeText,
-  value,
-  style
-}) {
+export default function SearchBar({ value, onChangeText }) {
   return (
     <Searchbar
-      placeholder={placeholder}
+      placeholder="Search books..."
       onChangeText={onChangeText}
       value={value}
-      style={[styles.searchbar, style]}
+      style={styles.searchbar}
+      inputStyle={styles.input}
+      iconColor={theme.colors.text.secondary}
+      placeholderTextColor={theme.colors.text.muted}
     />
   );
 }
 
 const styles = StyleSheet.create({
   searchbar: {
-    marginTop: 60,
-    marginBottom: 20,
+    backgroundColor: theme.colors.background,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    elevation: 0,
+  },
+  input: {
+    ...theme.typography.body,
+    color: theme.colors.text.primary,
   },
 });

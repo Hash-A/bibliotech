@@ -1,9 +1,19 @@
 import React from 'react';
 import { Text } from 'react-native';
+import { theme } from '../../styles/theme';
 
 export default function SectionTitle({ children, style }) {
   return (
-    <Text style={[{ fontSize: 22, marginTop: 0, marginBottom: 10, fontWeight: '600' }, style]}>
+    <Text 
+      style={[
+        { 
+          ...theme.typography.title,
+          color: theme.colors.text.primary,
+          marginBottom: theme.spacing.md,
+        }, 
+        style
+      ]}
+    >
       {children}
     </Text>
   );

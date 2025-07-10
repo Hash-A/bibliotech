@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     bookCover: {
         width: 60,
         height: 90,
-        borderRadius: 4,
+        borderRadius: 8,
         marginRight: 16,
         backgroundColor: "#eee",
     },

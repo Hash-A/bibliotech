@@ -12,7 +12,8 @@ import { useNavigation } from "@react-navigation/native";
 import { BooksContext } from "../context/BooksContext";
 import SearchBar from "../components/search/SearchBar";
 import StandardBookCard from "../components/bookCards/StandardBookCard";
-import * as helpers from "../db/helpers"; // if not already imported
+import * as helpers from "../db/helpers";
+import { theme } from "../styles/theme";
 
 export default function SearchScreen() {
     const [query, setQuery] = useState("");
@@ -21,10 +22,8 @@ export default function SearchScreen() {
     const navigation = useNavigation();
     const { allBooks, getBooks, db } = useContext(BooksContext);
 
-    // console.log('allBooks:', allBooks);
     const popularBooks = allBooks.slice(0, 96);
 
-    // Debounce: delay search until typing stops
     useEffect(() => {
         const timeout = setTimeout(() => {
             if (query.trim() === "") {
@@ -42,7 +41,7 @@ export default function SearchScreen() {
                     console.error("Search failed:", err);
                     setLoading(false);
                 });
-        }, 100); // debounce delay
+        }, 100);
 
         return () => clearTimeout(timeout);
     }, [query]);
@@ -67,10 +66,15 @@ export default function SearchScreen() {
 
     return (
         <View style={styles.container}>
-            <SearchBar onChangeText={setQuery} value={query} />
+            <View style={styles.searchBarContainer}>
+                <SearchBar onChangeText={setQuery} value={query} />
+            </View>
 
             {query.trim() === "" ? (
-                <ScrollView style={styles.popularSection}>
+                <ScrollView 
+                    style={styles.popularSection}
+                    contentContainerStyle={styles.contentContainer}
+                >
                     <Text style={styles.popularTitle}>
                         Browse popular books
                     </Text>
@@ -83,11 +87,15 @@ export default function SearchScreen() {
                     ))}
                 </ScrollView>
             ) : (
-                <ScrollView style={styles.results}>
+                <ScrollView 
+                    style={styles.results}
+                    contentContainerStyle={styles.contentContainer}
+                >
                     {loading ? (
                         <ActivityIndicator
                             size="large"
-                            style={{ marginTop: 20 }}
+                            style={styles.loader}
+                            color={theme.colors.primary}
                         />
                     ) : results.length > 0 ? (
                         results.map((book) => (
@@ -108,24 +116,38 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 16,
-        backgroundColor: "#fff",
         flex: 1,
+        backgroundColor: theme.colors.background,
+    },
+    searchBarContainer: {
+        backgroundColor: theme.colors.surface,
+        paddingHorizontal: theme.spacing.md,
+        paddingTop: 70,
+        paddingBottom: theme.spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border,
+    },
+    contentContainer: {
+        padding: theme.spacing.md,
     },
     popularSection: {
-        marginTop: 10,
+        flex: 1,
     },
     popularTitle: {
-        fontSize: 18,
-        marginBottom: 10,
-        fontWeight: "600",
+        ...theme.typography.title,
+        color: theme.colors.text.primary,
+        marginBottom: theme.spacing.lg,
     },
     results: {
-        marginTop: 10,
+        flex: 1,
+    },
+    loader: {
+        marginTop: theme.spacing.xl,
     },
     noResults: {
-        marginTop: 20,
-        textAlign: "center",
-        color: "#999",
+        marginTop: theme.spacing.xl,
+        textAlign: 'center',
+        color: theme.colors.text.muted,
+        ...theme.typography.body,
     },
 });

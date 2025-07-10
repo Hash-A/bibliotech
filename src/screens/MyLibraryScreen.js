@@ -1,59 +1,65 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { BooksContext } from '../context/BooksContext';
 import StandardBookCard from '../components/bookCards/StandardBookCard';
+import { theme } from '../styles/theme';
 
 export default function MyLibraryScreen() {
   const navigation = useNavigation();
   const { allBooks } = useContext(BooksContext);
   const [myLibraryBooks, setMyLibraryBooks] = useState([]);
 
-  const books = allBooks;
-
-  // let myLibraryBooks = [];
   useEffect(() => {
-    console.log("entered mylibrary");
     setMyLibraryBooks(allBooks.filter(book => book.inLibrary));
-  }, [allBooks])
-
-  // Only show books that are in the user's library
+  }, [allBooks]);
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.header}>My Library</Text>
-      {myLibraryBooks.length === 0 ? (
-        <Text style={{ color: '#888', marginTop: 20 }}>No books in your library yet.</Text>
-      ) : (
-        myLibraryBooks.map((book) => (
-          <StandardBookCard
-            key={book.id}
-            book={book}
-            onPress={() => navigation.navigate('BookPreview', { book: book })}
-          />
-        ))
-      )}
-    </ScrollView>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+      >
+        {myLibraryBooks.length === 0 ? (
+          <Text style={styles.emptyLibrary}>No books in your library yet.</Text>
+        ) : (
+          myLibraryBooks.map((book) => (
+            <StandardBookCard
+              key={book.id}
+              book={book}
+              onPress={() => navigation.navigate('BookPreview', { book: book })}
+            />
+          ))
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: '#fff',
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: theme.spacing.md,
   },
   header: {
-    marginTop: 60,
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: 'bold',
+    ...theme.typography.header,
+    color: theme.colors.text.primary,
+    marginTop: 70,
+    marginBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.md,
   },
-  bookCard: {
-    marginBottom: 15,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  emptyLibrary: {
+    ...theme.typography.body,
+    color: theme.colors.text.muted,
+    textAlign: 'center',
+    marginTop: theme.spacing.xl,
   },
 });

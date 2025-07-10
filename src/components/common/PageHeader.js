@@ -1,16 +1,18 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { theme } from '../../styles/theme';
 
 export default function PageHeader({ children, style, containerStyle }) {
   return (
     <View
       style={[
         {
-          marginTop: 48,         // Move down 10
-          marginLeft: 0,        // Move right 15
+          paddingTop: theme.spacing.xl + theme.spacing.lg,
+          paddingBottom: theme.spacing.md,
           width: '100%',
-          backgroundColor: '#f5f5f5',
-          padding: 12,
+          backgroundColor: theme.colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.colors.border,
         },
         containerStyle,
       ]}
@@ -18,10 +20,9 @@ export default function PageHeader({ children, style, containerStyle }) {
       <Text
         style={[
           {
-            fontSize: 26,
-            fontWeight: 'bold',
+            ...theme.typography.header,
+            color: theme.colors.text.primary,
             textAlign: 'center',
-            color: '#222',
           },
           style,
         ]}

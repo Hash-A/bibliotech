@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
+import { theme } from '../../styles/theme';
 
 export default function SettingsButton({ onPress }) {
   return (
@@ -9,6 +10,8 @@ export default function SettingsButton({ onPress }) {
       mode="outlined"
       style={styles.settingsButton}
       onPress={onPress}
+      textColor={theme.colors.text.secondary}
+      buttonColor={theme.colors.surface}
     >
       Settings
     </Button>
@@ -17,7 +20,7 @@ export default function SettingsButton({ onPress }) {
 
 const styles = StyleSheet.create({
   settingsButton: {
-    alignSelf: 'center',
-    marginTop: 10,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
   },
 });
