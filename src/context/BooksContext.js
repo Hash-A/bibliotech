@@ -15,6 +15,7 @@ export function BooksProvider({ children }) {
     const getLibraryStatus = async (bookId) => {
         try {
             const book = await helpers.getBook(db.current, bookId);
+            console.log('getLibraryStatus:', { bookId, status: book?.inLibrary || 0 });
             return book ? book.inLibrary : 0;
         } catch (error) {
             console.error('Error getting library status:', error);
@@ -38,32 +39,64 @@ export function BooksProvider({ children }) {
     };
 
     const setBookInLibrary = async (id, inLibrary) => { 
+        console.log('setBookInLibrary called:', { id, inLibrary });
+        
         // inLibrary === 0  not in library
         // inLibrary === 1  in library
         // inLibrary === 2 -> getTimeSeconds() viewed
         const getTimeSeconds = () => Math.floor(Date.now() / 1000);
         if (inLibrary === 2) inLibrary = getTimeSeconds();
         
-        await helpers.setBookInLibrary(db.current, id, inLibrary);
-        
-        // Update allBooks state
-        setAllBooks((prev) =>
-            prev.map((book) => 
-                book.id === id ? { ...book, inLibrary } : book
-            )
-        );
-        
-        // Also update searchResults if the book is in there
-        setSearchResults((prev) =>
-            prev.map((book) => 
-                book.id === id ? { ...book, inLibrary } : book
-            )
-        );
+        try {
+            await helpers.setBookInLibrary(db.current, id, inLibrary);
+            console.log('Database update completed');
+            
+            // If the book isn't in allBooks but is in searchResults, add it to allBooks
+            const bookInAll = allBooks.some(b => b.id === id);
+            const searchBook = searchResults.find(b => b.id === id);
+            
+            if (!bookInAll && searchBook) {
+                console.log('Adding search result book to allBooks');
+                setAllBooks(prev => [...prev, { ...searchBook, inLibrary }]);
+            } else {
+                // Update allBooks state
+                setAllBooks((prev) => {
+                    const newBooks = prev.map((book) => 
+                        book.id === id ? { ...book, inLibrary } : book
+                    );
+                    console.log('allBooks updated:', {
+                        bookFound: prev.some(b => b.id === id),
+                        oldStatus: prev.find(b => b.id === id)?.inLibrary,
+                        newStatus: inLibrary
+                    });
+                    return newBooks;
+                });
+            }
+            
+            // Also update searchResults if the book is in there
+            setSearchResults((prev) => {
+                const newResults = prev.map((book) => 
+                    book.id === id ? { ...book, inLibrary } : book
+                );
+                console.log('searchResults updated:', {
+                    bookFound: prev.some(b => b.id === id),
+                    oldStatus: prev.find(b => b.id === id)?.inLibrary,
+                    newStatus: inLibrary
+                });
+                return newResults;
+            });
+        } catch (error) {
+            console.error('Error in setBookInLibrary:', error);
+            throw error;
+        }
     };
 
     // getBooks tries local DB first, then supplements from API if <32 results
     const getBooks = async (hint) => {
+        console.log('getBooks called with hint:', hint);
         const localBooks = await helpers.getBooks(db.current, hint);
+        console.log('Local books found:', localBooks.length);
+        
         const needed = 32 - localBooks.length;
 
         if (needed <= 0) {
@@ -73,23 +106,27 @@ export function BooksProvider({ children }) {
 
         try {
             const apiBooks = await fetchFromApi(hint);
+            console.log('API books fetched:', apiBooks.length);
             
             // Get current library status for all API books
             const apiBookStatuses = await Promise.all(
-                apiBooks.map(async (book) => ({
-                    ...book,
-                    inLibrary: await getLibraryStatus(book.id)
-                }))
+                apiBooks.map(async (book) => {
+                    const status = await getLibraryStatus(book.id);
+                    return { ...book, inLibrary: status };
+                })
             );
+            console.log('API books with status:', apiBookStatuses.map(b => ({ id: b.id, inLibrary: b.inLibrary })));
 
             const existingIds = new Set(localBooks.map((b) => b.id));
             const newBooks = apiBookStatuses.filter((b) => !existingIds.has(b.id));
 
             // Insert new books into the database
             await helpers.insertBooks(db.current, newBooks);
+            console.log('New books inserted into database:', newBooks.length);
 
             // Combine local and new books
             const combined = [...localBooks, ...newBooks].slice(0, 32);
+            console.log('Combined results:', combined.length);
             
             setSearchResults(combined);
             return combined;

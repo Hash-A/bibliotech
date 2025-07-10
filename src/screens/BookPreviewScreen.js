@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
-import { Card, Text, Divider } from 'react-native-paper';
+import { Card, Text, Divider, Button } from 'react-native-paper';
 import { getBookById } from '../data/books';
 import { BooksContext } from '../context/BooksContext';
 import ViewButton from '../components/common/ViewButton';
@@ -10,7 +10,7 @@ import BookDetails from '../components/bookPreview/BookDetails';
 import { theme } from '../styles/theme';
 
 export default function BookPreviewScreen({ route, navigation }) {
-  const { allBooks, setBookInLibrary, downloadBook } = useContext(BooksContext);
+  const { allBooks, books: searchResults, setBookInLibrary, downloadBook } = useContext(BooksContext);
   
   // Safely get the book from route params
   const initialBook = route.params?.book;
@@ -22,22 +22,55 @@ export default function BookPreviewScreen({ route, navigation }) {
     );
   }
 
-  // Get the fresh book data from context
-  const book = allBooks.find(b => b.id === initialBook.id) || initialBook;
+  // Get the fresh book data from context, checking both allBooks and searchResults
+  const bookFromAll = allBooks.find(b => b.id === initialBook.id);
+  const bookFromSearch = searchResults.find(b => b.id === initialBook.id);
+  const book = bookFromAll || bookFromSearch || initialBook;
+
+  console.log('Current book state:', {
+    id: book.id,
+    title: book.title,
+    inLibrary: book.inLibrary,
+    fromAllBooks: !!bookFromAll,
+    fromSearchResults: !!bookFromSearch
+  });
 
   const handleAddToLibrary = async () => {
     try {
       const newStatus = book.inLibrary > 0 ? 0 : 1;
+      console.log('Attempting to change library status:', {
+        bookId: book.id,
+        currentStatus: book.inLibrary,
+        newStatus: newStatus
+      });
+
       await setBookInLibrary(book.id, newStatus);
+      console.log('setBookInLibrary completed');
       
       if (newStatus === 1) {
+        console.log('Attempting to download book:', book.id);
         await downloadBook(book.id, book.downloadUrl);
+        console.log('Book download completed');
       }
     } catch (error) {
-      console.error('Error managing library status:', error);
+      console.error('Error in handleAddToLibrary:', error);
       Alert.alert(
         'Error',
         'Failed to update library status. Please try again.'
+      );
+    }
+  };
+
+  const handleRemoveFromLibrary = async () => {
+    try {
+      console.log('Attempting to remove book from library:', book.id);
+      await setBookInLibrary(book.id, 0);
+      console.log('Book removed from library');
+    } catch (error) {
+      console.error('Error removing book from library:', error);
+      Alert.alert(
+        'Error',
+        'Failed to remove book from library. Please try again.'
       );
     }
   };
@@ -48,6 +81,8 @@ export default function BookPreviewScreen({ route, navigation }) {
     }
     navigation.navigate('Reader', { book });
   };
+
+  const isInLibrary = book.inLibrary > 0;
 
   return (
     <ScrollView style={styles.container}>
@@ -62,6 +97,17 @@ export default function BookPreviewScreen({ route, navigation }) {
           onPress={handleAddToLibrary}
           inLibrary={book.inLibrary || 0}
         />
+        {isInLibrary && (
+          <Button
+            mode="outlined"
+            icon="delete"
+            onPress={handleRemoveFromLibrary}
+            style={styles.removeButton}
+            textColor={theme.colors.error}
+          >
+            Remove from Library
+          </Button>
+        )}
         <ViewButton
           onPress={handleReadBook}
         />
@@ -93,5 +139,8 @@ const styles = StyleSheet.create({
   actions: {
     padding: theme.spacing.md,
     gap: theme.spacing.sm,
+  },
+  removeButton: {
+    borderColor: theme.colors.error,
   },
 });

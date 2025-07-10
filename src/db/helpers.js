@@ -79,10 +79,16 @@ export async function getBooks(db, hint) {
 // Get a specific book by ID
 export async function getBook(db, id) {
     try {
+        console.log('DB: Getting book by ID:', id);
         const book = await db.getFirstAsync(
             "SELECT * FROM books WHERE id = ?",
             id
         );
+        console.log('DB: Book found:', {
+            id,
+            found: !!book,
+            inLibrary: book?.inLibrary
+        });
         if (book) {
             // Keep inLibrary as is to preserve timestamp
             book.downloaded = !!book.downloaded;
@@ -97,13 +103,23 @@ export async function getBook(db, id) {
 // Update inLibrary status
 export async function setBookInLibrary(db, id, inLibrary) {
     try {
+        console.log('DB: Attempting to set inLibrary status:', { id, inLibrary });
         await db.runAsync(
             "UPDATE books SET inLibrary = ? WHERE id = ?",
             inLibrary,  // Remove the boolean conversion to allow timestamp values
             id
         );
+        
+        // Verify the update
+        const updatedBook = await getBook(db, id);
+        console.log('DB: Book status after update:', {
+            id,
+            found: !!updatedBook,
+            inLibrary: updatedBook?.inLibrary
+        });
     } catch (error) {
         console.error(`Error in setBookInLibrary (id: ${id}):`, error);
+        throw error;  // Re-throw to handle in UI
     }
 }
 
