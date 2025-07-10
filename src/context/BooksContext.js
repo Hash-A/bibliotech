@@ -180,6 +180,10 @@ export function BooksProvider({ children }) {
         await helpers.toggleBookmark(db.current, bookId, charIndex);
     };
 
+    const getPopularBooks = async () => {
+        return await helpers.getPopularBooks(db.current);
+    };
+
     useEffect(() => {
         const setup = async () => {
             try {
@@ -224,6 +228,7 @@ export function BooksProvider({ children }) {
                 downloadBook,
                 getDownloadedBookContent,
                 toggleBookmark,
+                getPopularBooks,
             }}
         >
             {children}

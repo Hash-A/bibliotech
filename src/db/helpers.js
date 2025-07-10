@@ -229,11 +229,15 @@ export async function toggleBookmark(db, bookId, charIndex) {
 }
 
 export async function getPopularBooks(db, limit = 96) {
-    // This assumes your books are inserted in popularity order (from the API)
-    return await db.getAllAsync(
+    // Get top 96 most downloaded books (sorted by ID as they come from Gutendex)
+    const topBooks = await db.getAllAsync(
         `SELECT * FROM books ORDER BY id ASC LIMIT ?`,
         limit
     );
+    
+    // Randomly select 32 books from the top 96
+    const shuffled = [...topBooks].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 32);
 }
 
 // Set a book as recommended

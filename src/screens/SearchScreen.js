@@ -18,15 +18,18 @@ export default function SearchScreen() {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [popularBooks, setPopularBooks] = useState([]);
     const navigation = useNavigation();
-    const { allBooks, getBooks } = useContext(BooksContext);
+    const { allBooks, getBooks, getPopularBooks } = useContext(BooksContext);
 
-    // Get popular books from allBooks - books with highest ratings or featured status
-    const popularBooks = React.useMemo(() => {
-        return allBooks
-            .slice(0, 96)
-            .filter(book => !query.trim()); // Only show popular books when no search query
-    }, [allBooks, query]);
+    // Load popular books on component mount
+    useEffect(() => {
+        const loadPopularBooks = async () => {
+            const books = await getPopularBooks();
+            setPopularBooks(books);
+        };
+        loadPopularBooks();
+    }, []);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
