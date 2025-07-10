@@ -86,10 +86,9 @@ const styles = StyleSheet.create({
         padding: theme.spacing.md,
     },
     sectionSpacing: {
-        marginTop: theme.spacing.xl,
+        marginTop: theme.spacing.md,
     },
     featuredCard: {
-        marginTop: theme.spacing.sm,
         backgroundColor: theme.colors.surface,
         borderRadius: theme.borderRadius.md,
         borderWidth: 1,
@@ -101,8 +100,8 @@ const styles = StyleSheet.create({
     continueReadingStyles: {
         miniCard: {
             width: 130,
-            marginRight: theme.spacing.md,
-            marginVertical: theme.spacing.sm,
+            marginLeft: 10,
+            marginVertical: 0,
             backgroundColor: theme.colors.surface,
             borderRadius: theme.borderRadius.md,
             borderWidth: 1,
