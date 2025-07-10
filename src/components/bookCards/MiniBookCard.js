@@ -7,7 +7,7 @@ export default function MiniBookCard({ book, onPress, style, coverStyle, titleSt
 
   return (
     <Card
-      style={style}
+      style={[{ overflow: 'hidden' }, style]}
       onPress={onPress}
     >
       {book.cover ? (
@@ -20,7 +20,9 @@ export default function MiniBookCard({ book, onPress, style, coverStyle, titleSt
         <View style={[coverStyle, { backgroundColor: '#eee' }]} />
       )}
       <Card.Content>
-        <Text style={titleStyle}>{book.title}</Text>
+        <Text numberOfLines={2} ellipsizeMode="tail" style={titleStyle}>
+          {book.title}
+        </Text>
       </Card.Content>
     </Card>
   );

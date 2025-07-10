@@ -20,8 +20,8 @@ export async function insertBooks(db, books) {
             await db.runAsync(
                 `INSERT OR IGNORE INTO books (
           id, title, author, cover, publishDate, summary, isbn, pages, genres,
-          inLibrary, downloaded, downloadPath, downloadUrl
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          inLibrary, downloaded, downloadPath, downloadUrl, isRecommendation
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     book.id,
                     book.title,
@@ -32,10 +32,11 @@ export async function insertBooks(db, books) {
                     book.isbn,
                     book.pages,
                     book.genres ? JSON.stringify(book.genres) : null,
-                    book.inLibrary ? 1 : 0,
+                    book.inLibrary || 0,  // Use 0 as default instead of converting to boolean
                     book.downloaded ? 1 : 0,
                     book.downloadPath || null,
                     book.downloadUrl || null,
+                    book.isRecommendation || 0,
                 ]
             );
         }
@@ -48,12 +49,18 @@ export async function insertBooks(db, books) {
 export async function getBooks(db, hint) {
     try {
         const allBooks = await db.getAllAsync("SELECT * FROM books");
-        // console.log(hint);
+        // Convert isRecommendation to boolean for consistency
+        const processedBooks = allBooks.map(book => ({
+            ...book,
+            isRecommendation: !!book.isRecommendation
+        }));
+        console.log('Books from DB:', processedBooks.length, 'Recommended:', processedBooks.filter(b => b.isRecommendation).length);
+        
         if (typeof hint !== "string" || hint.trim() === "") {
-            return allBooks.slice(0, 32);
+            return processedBooks.slice(0, 32);
         }
 
-        const fuse = new Fuse(allBooks, {
+        const fuse = new Fuse(processedBooks, {
             keys: ["title", "author"],
             threshold: 0.4,
             ignoreLocation: true,
@@ -77,7 +84,7 @@ export async function getBook(db, id) {
             id
         );
         if (book) {
-            book.inLibrary = !!book.inLibrary;
+            // Keep inLibrary as is to preserve timestamp
             book.downloaded = !!book.downloaded;
         }
         return book || null;
@@ -92,7 +99,7 @@ export async function setBookInLibrary(db, id, inLibrary) {
     try {
         await db.runAsync(
             "UPDATE books SET inLibrary = ? WHERE id = ?",
-            inLibrary ? 1 : 0,
+            inLibrary,  // Remove the boolean conversion to allow timestamp values
             id
         );
     } catch (error) {
@@ -211,4 +218,18 @@ export async function getPopularBooks(db, limit = 96) {
         `SELECT * FROM books ORDER BY id ASC LIMIT ?`,
         limit
     );
+}
+
+// Set a book as recommended
+export async function setBookRecommendation(db, id, isRecommended) {
+    try {
+        console.log(`Setting book ${id} recommendation to ${isRecommended}`);
+        await db.runAsync(
+            "UPDATE books SET isRecommendation = ? WHERE id = ?",
+            isRecommended ? 1 : 0,
+            id
+        );
+    } catch (error) {
+        console.error(`Error in setBookRecommendation (id: ${id}):`, error);
+    }
 }

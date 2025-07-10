@@ -118,25 +118,27 @@ export function BooksProvider({ children }) {
                 const newdb = await SQLite.openDatabaseAsync("books.db");
                 db.current = newdb;
 
+                // Initialize database schema (but don't clear data)
                 await initDatabase(db.current);
+                console.log("Database initialized");
 
-                // 1. Check if database is empty
+                // Check if database is empty
                 const existingBooks = await helpers.getBooks(db.current, null);
                 if (existingBooks.length === 0) {
-                    // 2. Prepopulate if empty
+                    // Only prepopulate if empty
+                    console.log("Database empty, prepopulating...");
                     await prepopulateDatabase(db.current);
-                }
-
-                // 3. Now run your normal fetch logic
-                const fetchedBooks = await helpers.getBooks(db.current, null);
-
-                if (fetchedBooks.length === 0) {
-                    const newBooks = await fetchBooks(null);
-                    await helpers.insertBooks(db.current, newBooks);
-                    setAllBooks(newBooks);
+                    console.log("Database prepopulated");
                 } else {
-                    setAllBooks(fetchedBooks);
+                    console.log(`Database already contains ${existingBooks.length} books`);
                 }
+
+                // Load books including recommendations
+                const fetchedBooks = await helpers.getBooks(db.current, null);
+                console.log("Fetched books:", fetchedBooks.length, "Recommended:", fetchedBooks.filter(b => b.isRecommendation).length);
+                
+                setAllBooks(fetchedBooks);
+
             } catch (e) {
                 console.error("Setup failed:", e);
             }

@@ -76,6 +76,7 @@ export async function fetchBooks(hint) {
                         ? book.subjects.join(" ")
                         : null,
                 downloadUrl,
+                isRecommendation: false
             };
         });
 
@@ -119,6 +120,7 @@ export async function fetchBooksFromPage(page = 1) {
                         ? book.subjects.join(" ")
                         : null,
                 downloadUrl,
+                isRecommendation: false
             };
         });
 

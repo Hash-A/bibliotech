@@ -20,6 +20,7 @@ export default function DashboardScreen() {
     // Get the first recommended book for "Our Picks"
 
     const ourPicks = books.filter((book) => book.isRecommendation);
+    console.log('Our Picks:', ourPicks); // Add this line
     const featuredBook = ourPicks[0]; // if i have multiple books to possibly recommend ourPicks[number.rand()];
 
     // Get books for "Continue Reading"
@@ -79,6 +80,7 @@ export default function DashboardScreen() {
                     onBookPress={(book) =>
                         navigation.navigate("BookPreview", { book: book })
                     }
+                    styles={styles.continueReadingStyles}
                 />
 
                 <Divider style={{ marginVertical: 20 }} />
@@ -94,5 +96,26 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: "#fff",
         padding: 20,
+    },
+    continueReadingStyles: {
+        miniCard: {
+            width: 110,
+            marginRight: 15,
+            marginVertical: 10,
+            elevation: 4,
+            backgroundColor: '#fff',
+        },
+        miniCover: {
+            width: '100%',
+            height: 150,
+            borderTopLeftRadius: 4,
+            borderTopRightRadius: 4,
+        },
+        miniTitle: {
+            fontSize: 14,
+            marginTop: 8,
+            marginBottom: 4,
+            numberOfLines: 2,
+        },
     },
 });

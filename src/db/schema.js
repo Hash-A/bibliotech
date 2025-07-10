@@ -1,4 +1,5 @@
 export async function initDatabase(db) {
+  // Create tables with new schema (only if they don't exist)
   await db.runAsync(`
     CREATE TABLE IF NOT EXISTS books (
       id INTEGER PRIMARY KEY NOT NULL,
@@ -12,17 +13,11 @@ export async function initDatabase(db) {
       genres TEXT,
       inLibrary INTEGER DEFAULT 0,
       downloaded INTEGER DEFAULT 0,
-      downloadPath TEXT
+      downloadPath TEXT,
+      downloadUrl TEXT,
+      isRecommendation INTEGER DEFAULT 0
     );
   `);
-
-  try {
-    await db.runAsync(`ALTER TABLE books ADD COLUMN downloadUrl TEXT`);
-  } catch (e) {
-    if (!e.message.includes('duplicate column name')) {
-      console.error('Error adding downloadUrl column:', e);
-    }
-  }
 
   await db.runAsync(`
     CREATE TABLE IF NOT EXISTS bookmarks (
