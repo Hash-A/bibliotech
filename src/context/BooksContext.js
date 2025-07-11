@@ -58,6 +58,18 @@ export function BooksProvider({ children }) {
             if (!bookInAll && searchBook) {
                 console.log('Adding search result book to allBooks');
                 setAllBooks(prev => [...prev, { ...searchBook, inLibrary }]);
+            } else if (!bookInAll && !searchBook) {
+                // Book not present in either array; fetch fresh row from DB and add it
+                try {
+                    const freshBook = await helpers.getBook(db.current, id);
+                    if (freshBook) {
+                        console.log('Fetched fresh book to add into state arrays');
+                        setAllBooks(prev => [...prev, freshBook]);
+                        setSearchResults(prev => [...prev, freshBook]);
+                    }
+                } catch(fetchErr) {
+                    console.warn('Unable to fetch fresh book after library update', fetchErr);
+                }
             } else {
                 // Update allBooks state
                 setAllBooks((prev) => {

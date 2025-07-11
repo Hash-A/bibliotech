@@ -35,7 +35,12 @@ export default function BookPreviewScreen({ route, navigation }) {
     fromSearchResults: !!bookFromSearch
   });
 
+  // Local loading state for add-to-library
+  const [isAdding, setIsAdding] = useState(false);
+
   const handleAddToLibrary = async () => {
+    if (isAdding) return; // debounce rapid presses
+    setIsAdding(true);
     try {
       const newStatus = book.inLibrary > 0 ? 0 : 1;
       console.log('Attempting to change library status:', {
@@ -58,6 +63,8 @@ export default function BookPreviewScreen({ route, navigation }) {
         'Error',
         'Failed to update library status. Please try again.'
       );
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -96,6 +103,7 @@ export default function BookPreviewScreen({ route, navigation }) {
         <AddToLibraryButton
           onPress={handleAddToLibrary}
           inLibrary={book.inLibrary || 0}
+          loading={isAdding}
         />
         {isInLibrary && (
           <Button

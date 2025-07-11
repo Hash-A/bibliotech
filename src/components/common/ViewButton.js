@@ -21,5 +21,6 @@ export default function ViewButton({ onPress, style }) {
 const styles = StyleSheet.create({
   button: {
     borderRadius: theme.borderRadius.md,
+    marginBottom: 20,
   },
 });

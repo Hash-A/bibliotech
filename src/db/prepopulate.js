@@ -27,7 +27,16 @@ async function setRecommendedBooks(db) {
 export async function prepopulateDatabase(db) {
     console.log("Starting database prepopulation...");
     let allBooks = [];
-    for (let page = 1; page <= 10; page++) {
+    // Load first 2 pages of books for faster first-launch
+    let initialBooks=[];
+    for (let page=1; page<=2; page++){
+        const pageBooks = await fetchBooksFromPage(page);
+        initialBooks = initialBooks.concat(pageBooks);
+    }
+    await insertBooks(db, initialBooks);
+    
+    // Start from page 3 since 1-2 were loaded initially
+    for (let page = 3; page <= 10; page++) {
         console.log(`Fetching page ${page}...`);
         const books = await fetchBooksFromPage(page);
         allBooks = allBooks.concat(books);

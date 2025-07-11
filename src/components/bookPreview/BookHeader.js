@@ -7,7 +7,7 @@ export default function BookHeader({ book }) {
     <View style={styles.header}>
       {book.cover ? (
         <Image
-            source={{ uri: book.cover }}
+            source={{ uri: book.cover, cache: 'force-cache' }}
             style={styles.cover}
             resizeMode="cover"
         />

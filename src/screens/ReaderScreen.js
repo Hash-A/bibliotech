@@ -17,47 +17,49 @@ export default function ReaderScreen({ route }) {
 
     // const book = getBookById(allBooks, bookId);
 
+    // Attempt to load local cached content; otherwise download and cache, or fallback to remote URL.
     useEffect(() => {
-        const loadContent = async () => {
-            if (!book) return;
+        let cancelled = false;
+
+        const load = async () => {
+            if (!book) {
+                setIsLoading(false);
+                return;
+            }
 
             setIsLoading(true);
             try {
-                let content;
-                // Check if the book is downloaded
-                console.log("downloading");
-                if (book.downloaded !== 1) {
+                // 1. Try to read already-downloaded content
+                let content = await getDownloadedBookContent(bookId);
+
+                // 2. If not downloaded yet but user owns the book (or chooses), download it now
+                if (!content && book.downloadUrl) {
                     await downloadBook(bookId, book.downloadUrl);
-                }
-                console.log("downloaded");
-
-                // Fetch the downloaded content
-                content = await getDownloadedBookContent(bookId);
-                console.log("fetching downloaded");
-
-                
-                // If content exists, use it. Otherwise, fallback to the URL.
-                if (content) {
-                    setHtmlContent(content);
-                    console.log("success");
-                } else if (book.downloadUrl) {
-                    // This is a fallback in case offline content fails
-                    // In a real scenario, you might want better error handling
-                    setHtmlContent(null); // Indicates we should use the URI
-                } else {
-                    throw new Error("No content available for this book.");
+                    content = await getDownloadedBookContent(bookId);
                 }
 
-            } catch (e) {
-                console.error("Error loading book content:", e);
-                setHtmlContent(`<p>Error: Could not load book.</p>`);
+                if (!cancelled) {
+                    if (content) {
+                        setHtmlContent(content);
+                    } else {
+                        // Fallback: show remote URL via WebView (requires connectivity)
+                        setHtmlContent("");
+                    }
+                }
+            } catch (err) {
+                console.error("Reader load error", err);
+                if (!cancelled) setHtmlContent(`<p>Error: Could not load book.</p>`);
             } finally {
-                setIsLoading(false);
+                if (!cancelled) setIsLoading(false);
             }
         };
 
-        loadContent();
-    }, [bookId, book]);
+        load();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [bookId]);
 
     // This JS code is injected into the WebView
     const injectedJavaScript = `
@@ -86,7 +88,7 @@ export default function ReaderScreen({ route }) {
         }
     };
     
-    if (isLoading || (!htmlContent && !book.downloadUrl)) {
+    if (isLoading || (!htmlContent && !book?.downloadUrl)) {
         return (
             <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
                 <ActivityIndicator size="large" />
@@ -98,18 +100,22 @@ export default function ReaderScreen({ route }) {
         <WebView
             ref={webviewRef}
             originWhitelist={["*"]}
-            // Use the downloaded HTML content if available, otherwise use the URL
-            source={htmlContent ? { html: htmlContent, baseUrl: 'https://www.gutenberg.org' } : { uri: book.downloadUrl }}
+            source={htmlContent ? { html: htmlContent, baseUrl: 'https://www.gutenberg.org' } : { uri: book?.downloadUrl }}
             style={{ flex: 1 }}
+            mixedContentMode="always"
             injectedJavaScript={injectedJavaScript}
             onMessage={handleMessage}
-            // Better loading experience
             startInLoadingState={true}
             renderLoading={() => (
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#fff' }}>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
                     <ActivityIndicator size="large" />
                 </View>
             )}
+            onError={(syntheticEvent) => {
+                const { nativeEvent } = syntheticEvent;
+                console.error('WebView error:', nativeEvent);
+                setHtmlContent(`<p>Error: Could not load book.</p>`);
+            }}
         />
     );
 }

@@ -55,7 +55,11 @@ export async function fetchBooks(hint) {
         // console.log(results);
 
         const books = results.map((book) => {
-            const downloadUrl = getDownloadUrl(book.formats);
+            let downloadUrl = getDownloadUrl(book.formats);
+            if (downloadUrl && downloadUrl.startsWith('http://')) {
+                // Force HTTPS for Android network-security compatibility
+                downloadUrl = downloadUrl.replace('http://', 'https://');
+            }
 
             return {
                 id: book.id,
@@ -103,7 +107,11 @@ export async function fetchBooksFromPage(page = 1) {
         const { results } = await response.json();
         // Map results as in your fetchBooks
         const books = results.map((book) => {
-            const downloadUrl = getDownloadUrl(book.formats);
+            let downloadUrl = getDownloadUrl(book.formats);
+            if (downloadUrl && downloadUrl.startsWith('http://')) {
+                // Force HTTPS for Android network-security compatibility
+                downloadUrl = downloadUrl.replace('http://', 'https://');
+            }
             return {
                 id: book.id,
                 title: book.title || null,

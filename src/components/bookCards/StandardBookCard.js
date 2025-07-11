@@ -19,7 +19,7 @@ export default function StandardBookCard({ book, onPress }) {
                     <View style={styles.coverContainer}>
                         {book.cover ? (
                             <Image
-                                source={{ uri: book.cover }}
+                                source={{ uri: book.cover, cache: 'force-cache' }}
                                 style={styles.cover}
                                 resizeMode="cover"
                             />

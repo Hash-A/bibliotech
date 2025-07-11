@@ -1,13 +1,24 @@
 import * as FileSystem from "expo-file-system";
+import * as Permissions from 'expo-permissions';
+import { Platform } from 'react-native';
 import Fuse from "fuse.js";
+
+// Helper to run a single SQL write safely whether or not transactionAsync exists
+async function safeExecute(db, sql, params = []) {
+    if (typeof db.transactionAsync === 'function') {
+        await db.transactionAsync(async (tx) => {
+            await tx.executeSqlAsync(sql, ...params);
+        });
+    } else {
+        await db.runAsync(sql, ...params);
+    }
+}
 
 export async function clearDatabase(db) {
     try {
         // console.log("trying to clear db");
-        await db.runAsync("DELETE FROM books;");
-        // console.log('Deleted books');
-        await db.runAsync("DELETE FROM bookmarks;");
-        // console.log('Deleted bookmarks');
+        await safeExecute(db, "DELETE FROM books;");
+        await safeExecute(db, "DELETE FROM bookmarks;");
         // console.log('All data deleted from tables.');
     } catch (error) {
         console.log("Failed to clear database:", error);
@@ -32,7 +43,7 @@ export async function insertBooks(db, books) {
                     book.isbn,
                     book.pages,
                     book.genres ? JSON.stringify(book.genres) : null,
-                    book.inLibrary || 0,  // Use 0 as default
+                    book.inLibrary || 0,  // default 0
                     book.downloaded ? 1 : 0,
                     book.downloadPath || null,
                     book.downloadUrl || null,
@@ -135,8 +146,9 @@ export async function downloadBook(db, bookId, url) {
         if (existingBook?.downloadPath) {
             // Check if file actually exists
             const fileInfo = await FileSystem.getInfoAsync(existingBook.downloadPath);
-            if (fileInfo.exists) {
-                return existingBook.downloadPath;
+            const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+            if (!fileInfo.exists || fileInfo.size === 0 || fileInfo.size > MAX_SIZE) {
+                throw new Error('Downloaded file is empty or not accessible');
             }
         }
 
@@ -153,10 +165,9 @@ export async function downloadBook(db, bookId, url) {
         }
 
         // Update the database
-        await db.runAsync(
-            "UPDATE books SET downloaded = 1, downloadPath = ? WHERE id = ?",
-            downloadResult.uri,
-            bookId
+        await safeExecute(db,
+            "UPDATE books SET downloaded = ? , downloadPath = ? WHERE id = ?",
+            [1, downloadResult.uri, bookId]
         );
 
         return downloadResult.uri;
@@ -208,16 +219,14 @@ export async function toggleBookmark(db, bookId, charIndex) {
         );
 
         if (existing) {
-            await db.runAsync(
+            await safeExecute(db,
                 "DELETE FROM bookmarks WHERE book_id = ? AND char_index = ?",
-                bookId,
-                charIndex
+                [bookId, charIndex]
             );
         } else {
-            await db.runAsync(
+            await safeExecute(db,
                 "INSERT INTO bookmarks (book_id, char_index) VALUES (?, ?)",
-                bookId,
-                charIndex
+                [bookId, charIndex]
             );
         }
     } catch (error) {
@@ -244,10 +253,9 @@ export async function getPopularBooks(db, limit = 96) {
 export async function setBookRecommendation(db, id, isRecommended) {
     try {
         console.log(`Setting book ${id} recommendation to ${isRecommended}`);
-        await db.runAsync(
+        await safeExecute(db,
             "UPDATE books SET isRecommendation = ? WHERE id = ?",
-            isRecommended ? 1 : 0,
-            id
+            [isRecommended ? 1 : 0, id]
         );
     } catch (error) {
         console.error(`Error in setBookRecommendation (id: ${id}):`, error);
